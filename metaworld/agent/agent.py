@@ -1,25 +1,28 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import cast
 
 import gymnasium as gym
 import numpy as np
 
 from metaworld.policies import ENV_POLICY_MAP
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 
 
 class MetaworldAgent(ABC):
     @abstractmethod
     def get_action(self, env: gym.Env, obs: np.ndarray, info: dict) -> np.ndarray:
-        """
-        Get action for a given observation in a given environment.
+        """Get action for a given observation in a given environment.
 
         Args:
-            env (gym.Env): The environment instance. No modifications should be made to it. It is provided
-                            only for reference (e.g., to access the action space or to get the environment name via `env.unwrapped.ENV_NAME`).
+            env (gym.Env): The environment instance. No modifications should be made to it.
+                           It is provided only for reference (e.g., to access the action space
+                           or to get the environment name via `env.unwrapped.ENV_NAME`).
             obs (np.ndarray): The current observation from the environment.
             info (dict): Additional information from the environment.
             env_name (str): The name of the environment/task.
+
         """
         pass
 
@@ -30,14 +33,14 @@ class MetaworldAgent(ABC):
 
 
 class RandomMetaworldAgent(MetaworldAgent):
-    def __init__(self, seed: int = None):
+    def __init__(self, seed: int | None = None) -> None:
         if seed is None:
             self.seed = 42
         self.seed = seed
         self.reset()
 
     def get_action(self, env: gym.Env, obs: np.ndarray, info: dict) -> np.ndarray:
-        action_space = env.action_space
+        action_space = cast(gym.spaces.Box, env.action_space)
         low = action_space.low
         high = action_space.high
         return self.rng.uniform(low, high)
@@ -48,13 +51,12 @@ class RandomMetaworldAgent(MetaworldAgent):
 
 class ExpertPolicyMetaworldAgent(MetaworldAgent):
     def get_action(self, env: gym.Env, obs: np.ndarray, info: dict) -> np.ndarray:
-        env_name = env.unwrapped.ENV_NAME
-        if self.policy_task_name != env_name:
+        env_name = cast(SawyerXYZEnv, env.unwrapped).ENV_NAME
+        if self.policy is None or self.policy_task_name != env_name:
             self.policy_task_name = env_name
             policy_cls = ENV_POLICY_MAP[env_name]
             self.policy = policy_cls()
         return self.policy.get_action(obs)
 
     def reset(self):
-        self.policy_task_name = None
-        self.policy = None
+        pass

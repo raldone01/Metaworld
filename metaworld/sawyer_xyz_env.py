@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 from abc import ABC, abstractmethod
 from functools import cached_property
-from typing import Any, Literal, SupportsFloat
+from typing import Any, Literal, SupportsFloat, TypeAlias
 
 import mujoco
 import numpy as np
@@ -13,7 +13,6 @@ import numpy.typing as npt
 from gymnasium.envs.mujoco import MujocoEnv as mjenv_gym
 from gymnasium.spaces import Box, Space
 from gymnasium.utils.ezpickle import EzPickle
-from typing_extensions import TypeAlias
 
 from metaworld.types import XYZ, EnvironmentStateDict, ObservationDict
 from metaworld.utils import reward_utils
@@ -80,6 +79,7 @@ class SawyerMocapBase(mjenv_gym, ABC):
 
         Returns:
             3-element position.
+
         """
         right_finger_pos = self.data.site("rightEndEffector")
         left_finger_pos = self.data.site("leftEndEffector")
@@ -95,6 +95,7 @@ class SawyerMocapBase(mjenv_gym, ABC):
 
         Returns:
             A tuple of (qpos, qvel).
+
         """
         qpos = np.copy(self.data.qpos)
         qvel = np.copy(self.data.qvel)
@@ -103,11 +104,11 @@ class SawyerMocapBase(mjenv_gym, ABC):
     def set_env_state(
         self, state: tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]
     ) -> None:
-        """
-        Set the environment state.
+        """Set the environment state.
 
         Args:
             state: A tuple of (qpos, qvel).
+
         """
         mocap_pos, mocap_quat = state
         self.set_state(mocap_pos, mocap_quat)
@@ -117,6 +118,7 @@ class SawyerMocapBase(mjenv_gym, ABC):
 
         Returns:
             A dictionary containing the env state from the `__dict__` method, the model name (path) and the mocap state `(qpos, qvel)`.
+
         """
         state = self.__dict__.copy()
         return {"state": state, "mjb": self.model_path, "mocap": self.get_env_state()}
@@ -126,6 +128,7 @@ class SawyerMocapBase(mjenv_gym, ABC):
 
         Args:
             state: A dictionary containing the env state from the `__dict__` method, the model name (path) and the mocap state `(qpos, qvel)`.
+
         """
         self.__dict__ = state["state"]
         mjenv_gym.__init__(
@@ -148,6 +151,8 @@ class SawyerMocapBase(mjenv_gym, ABC):
 
 class SawyerXYZEnv(SawyerMocapBase, EzPickle):
     """The base environment for all Sawyer Mujoco envs that use mocap for XYZ control."""
+
+    ENV_NAME: str  # OVERRIDE ME
 
     _HAND_SPACE = Box(
         np.array([-0.525, 0.348, -0.0525]),
@@ -286,6 +291,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Args:
             action: The action to apply (in offsets between :math:`[-1, 1]` for each axis in XYZ).
+
         """
         action = np.clip(action, -1, 1)
         pos_delta = action * self.action_scale
@@ -303,6 +309,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Args:
             pos: The position to set as a numpy array of 3 elements (XYZ value).
+
         """
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
@@ -318,6 +325,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Returns:
             Flat, 3 element array indicating site's location.
+
         """
         return self.data.site(site_name).xpos.copy()
 
@@ -327,6 +335,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         Args:
             name: The site's name
             pos: Flat, 3 element array indicating site's location
+
         """
         assert isinstance(pos, np.ndarray)
         assert pos.ndim == 1
@@ -345,6 +354,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Returns:
             Whether the gripper is touching the object
+
         """
         return self.touching_object(self._get_id_main_object())
 
@@ -356,8 +366,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Returns:
             Whether the gripper is touching the object
-        """
 
+        """
         leftpad_geom_id = self.data.geom("leftpad_geom").id
         rightpad_geom_id = self.data.geom("rightpad_geom").id
 
@@ -397,6 +407,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Returns:
             Flat array (usually 3 elements) representing the object(s)' position(s)
+
         """
         # Throw error rather than making this an @abc.abstractmethod so that
         # V1 environments don't have to implement it
@@ -407,6 +418,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Returns:
             Flat array (usually 4 elements) representing the object(s)' quaternion(s)
+
         """
         # Throw error rather than making this an @abc.abstractmethod so that
         # V1 environments don't have to implement it
@@ -417,6 +429,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Returns:
             Flat array (3 elements) representing the goal position
+
         """
         assert isinstance(self._target_pos, np.ndarray)
         assert self._target_pos.ndim == 1
@@ -429,8 +442,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Returns:
             The flat observation array (18 elements)
-        """
 
+        """
         pos_hand = self.get_endeff_pos()
 
         finger_right, finger_left = (
@@ -466,6 +479,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Returns:
             The flat observation array (39 elements)
+
         """
         # do frame stacking
         pos_goal = self._get_pos_goal()
@@ -537,6 +551,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Returns:
             The (next_obs, reward, terminated, truncated, info) tuple.
+
         """
         assert len(action) == 4, f"Actions should be size 4, got {len(action)}"
         self.set_xyz_action(action[:3])
@@ -584,6 +599,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             Tuple of reward between 0 and 10 and a dictionary which contains useful metrics (success,
                 near_object, grasp_success, grasp_reward, in_place_reward,
                 obj_to_target, unscaled_reward)
+
         """
         # Throw error rather than making this an @abc.abstractmethod so that
         # V1 environments don't have to implement it
@@ -606,6 +622,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Returns:
             The `(obs, info)` tuple.
+
         """
         self.current_step = 0
 
@@ -634,6 +651,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Args:
             steps: The number of steps to take to reset the hand.
+
         """
         mocap_id = self.model.body_mocapid[self.data.body("mocap").id]
         for _ in range(steps):
@@ -682,6 +700,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         Returns:
             the reward value
+
         """
         assert self.obj_init_pos is not None, (
             "`obj_init_pos` must be initialized before calling this function."

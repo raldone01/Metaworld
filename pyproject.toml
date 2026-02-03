@@ -16,10 +16,9 @@ classifiers = [
     "Development Status :: 4 - Beta",                             # change to `5 - Production/Stable` when ready
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     'Intended Audience :: Science/Research',
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
 ]
@@ -63,7 +62,6 @@ include = ["metaworld", "metaworld.*"]
 default-groups = "all"
 
 [tool.ruff]
-line-length = 79
 
 [tool.ruff.lint]
 extend-select = [
@@ -75,4 +73,6 @@ extend-select = [
     "I",    # https://docs.astral.sh/ruff/rules/#isort-i
     "N",    # https://docs.astral.sh/ruff/rules/#pep8-naming-n
     "D",    # https://docs.astral.sh/ruff/rules/#pydocstyle-d
+    "ANN",  # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
 ]
+unfixable = ["F401"] # https://docs.astral.sh/ruff/rules/unused-import/
