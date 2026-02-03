@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import gymnasium as gym
 import numpy as np
 
 from metaworld.agent.agent import MetaworldAgent
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 
 
 def _compute_required_max_episode_steps_for_lingering(
@@ -17,7 +18,7 @@ def _compute_required_max_episode_steps_for_lingering(
     if linger_time_after_success is None:
         return None
 
-    dt = env.unwrapped.dt
+    dt = cast(SawyerXYZEnv, env.unwrapped).dt
     extra_linger_step_count = int(linger_time_after_success / dt)
     return extra_linger_step_count
 
@@ -75,7 +76,8 @@ def run_agent_episode_with_env(
     # Actions (Note: buffer_size is enough, though actions will be 1 less than obs)
     if rec_agent_actions:
         agent_actions = np.zeros(
-            (buffer_size, *env.action_space.shape), dtype=env.action_space.dtype
+            (buffer_size, *cast(gym.spaces.Box, env.action_space).shape),
+            dtype=env.action_space.dtype,
         )
     # Metaworld Infos
     if rec_info_grasp_reward:
@@ -100,7 +102,7 @@ def run_agent_episode_with_env(
     done = False
     agent_step = 0
     if tqdm is not None:
-        tqdm_desc = tqdm_desc or f"{env.unwrapped.ENV_NAME} seed={reset_info['seed']}"
+        tqdm_desc = tqdm_desc or f"{cast(SawyerXYZEnv, env.unwrapped).ENV_NAME} seed={reset_info['seed']}"
         pbar = tqdm(total=actual_max_episode_steps, desc=tqdm_desc)
     while True:
         # Record Pre-Step Data
@@ -131,9 +133,7 @@ def run_agent_episode_with_env(
         if agent_first_success_step is not None:
             if linger_steps_after_success is not None:
                 # Continue stepping until linger time is over
-                if agent_step >= (
-                    agent_first_success_step + linger_steps_after_success
-                ):
+                if agent_step >= (agent_first_success_step + linger_steps_after_success):
                     done = True
             else:
                 done = True
@@ -233,12 +233,11 @@ def run_agent_episode(
 ) -> dict:
     if linger_time_after_success is not None and linger_steps_after_success is not None:
         raise ValueError(
-            "Only one of linger_time_after_success or linger_steps_after_success "
-            "may be specified."
+            "Only one of linger_time_after_success or linger_steps_after_success may be specified."
         )
 
     env = gym.make(
-        "Meta-World/MT1",
+        "Meta-World/MT1-v3",
         env_name=env_name,
         seed=seed,
         reward_function_version=reward_function_version,

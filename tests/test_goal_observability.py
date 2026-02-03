@@ -1,3 +1,5 @@
+from typing import cast
+
 import gymnasium as gym
 import numpy as np
 import pytest
@@ -8,13 +10,14 @@ from metaworld.env_dict import (
     ML_BENCHMARKS,
     MT_BENCHMARKS_TRAIN_ENV_NAMES,
 )
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 
 # --- Helper Functions ---
 
 
 def _assert_goal_observability(obs, env: gym.Env, goal_observable: bool):
     """Checks a single observation/env pair."""
-    env_name = env.unwrapped.ENV_NAME
+    env_name = cast(SawyerXYZEnv, env.unwrapped).ENV_NAME
     zero_pos = np.zeros(3)
     goal_pos = obs[-3:]
 
@@ -37,9 +40,7 @@ def _verify_goal_observability(env_instance, expected_observable: bool):
         if hasattr(env_instance, "envs"):
             # Iterate through vector environments
             for single_obs, single_env in zip(obs, env_instance.envs):
-                _assert_goal_observability(
-                    single_obs, single_env, expected_observable
-                )
+                _assert_goal_observability(single_obs, single_env, expected_observable)
         else:
             # Standard single environment
             _assert_goal_observability(obs, env_instance, expected_observable)
@@ -87,9 +88,7 @@ def test_mt1_goal_observability(override_setting, expected):
     _verify_goal_observability(env, expected)
 
 
-@pytest.mark.parametrize(
-    "benchmark_name", MT_BENCHMARKS_TRAIN_ENV_NAMES.keys()
-)
+@pytest.mark.parametrize("benchmark_name", MT_BENCHMARKS_TRAIN_ENV_NAMES.keys())
 @pytest.mark.parametrize(
     "override_setting, expected",
     [
@@ -97,9 +96,7 @@ def test_mt1_goal_observability(override_setting, expected):
         (False, False),  # Override to Hidden
     ],
 )
-def test_mt_benchmarks_goal_observability(
-    benchmark_name, override_setting, expected
-):
+def test_mt_benchmarks_goal_observability(benchmark_name, override_setting, expected):
     """Test standard MT benchmarks (MT10, MT50, etc)."""
     kwargs = {}
     if override_setting is not None:
@@ -155,9 +152,7 @@ def test_ml1_goal_observability(override_setting, expected):
         (True, True),  # Override to Visible
     ],
 )
-def test_ml_benchmarks_goal_observability(
-    benchmark_name, override_setting, expected
-):
+def test_ml_benchmarks_goal_observability(benchmark_name, override_setting, expected):
     """Test standard ML benchmarks (ML10, ML45, etc)."""
     kwargs = {"split": "train"}
     if override_setting is not None:

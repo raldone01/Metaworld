@@ -5,14 +5,16 @@ from typing import cast
 
 import gymnasium as gym
 import numpy as np
+import numpy.typing as npt
 
 from metaworld.policies import ENV_POLICY_MAP
+from metaworld.policies.policy import Policy
 from metaworld.sawyer_xyz_env import SawyerXYZEnv
 
 
 class MetaworldAgent(ABC):
     @abstractmethod
-    def get_action(self, env: gym.Env, obs: np.ndarray, info: dict) -> np.ndarray:
+    def get_action(self, env: gym.Env, obs: npt.NDArray[np.float64], info: dict) -> npt.NDArray[np.float32]:
         """Get action for a given observation in a given environment.
 
         Args:
@@ -39,18 +41,22 @@ class RandomMetaworldAgent(MetaworldAgent):
         self.seed = seed
         self.reset()
 
-    def get_action(self, env: gym.Env, obs: np.ndarray, info: dict) -> np.ndarray:
+    def get_action(self, env: gym.Env, obs: npt.NDArray[np.float64], info: dict) -> npt.NDArray[np.float32]:
         action_space = cast(gym.spaces.Box, env.action_space)
         low = action_space.low
         high = action_space.high
-        return self.rng.uniform(low, high)
+        return self.rng.uniform(low, high).astype(np.float32)
 
     def reset(self):
         self.rng = np.random.default_rng(self.seed)
 
 
 class ExpertPolicyMetaworldAgent(MetaworldAgent):
-    def get_action(self, env: gym.Env, obs: np.ndarray, info: dict) -> np.ndarray:
+    def __init__(self) -> None:
+        self.policy: Policy | None = None
+        self.policy_task_name: str | None = None
+
+    def get_action(self, env: gym.Env, obs: npt.NDArray[np.float64], info: dict) -> npt.NDArray[np.float32]:
         env_name = cast(SawyerXYZEnv, env.unwrapped).ENV_NAME
         if self.policy is None or self.policy_task_name != env_name:
             self.policy_task_name = env_name

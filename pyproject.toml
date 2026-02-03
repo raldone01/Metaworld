@@ -27,6 +27,7 @@ dependencies = [
     "mujoco>=3.0.0",
     "numpy>=1.18",
     "scipy>=1.4.1",
+    # Imageio is required by mujoco
     "imageio",
 ]
 
@@ -34,13 +35,7 @@ dependencies = [
 dev = ["ruff>=0.14.14", "ty>=0.0.14"]
 coverage = ["pytest-cov"]
 benchmarking = ["pyinstrument"]
-testing = [
-    "ipdb",
-    "memory_profiler",
-    "pyquaternion==0.9.5",
-    "pytest>=4.4.0",
-    "pytest-xdist",
-]
+testing = ["ipdb", "memory_profiler", "pytest>=4.4.0", "pytest-xdist"]
 
 [project.urls]
 Homepage = "https://farama.org"
@@ -62,6 +57,7 @@ include = ["metaworld", "metaworld.*"]
 default-groups = "all"
 
 [tool.ruff]
+line-length = 110
 
 [tool.ruff.lint]
 extend-select = [

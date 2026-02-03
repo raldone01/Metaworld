@@ -5,12 +5,12 @@ from __future__ import annotations
 import copy
 from abc import ABC, abstractmethod
 from functools import cached_property
-from typing import Any, Literal, SupportsFloat, TypeAlias
+from typing import Any, Literal, TypeAlias
 
 import mujoco
 import numpy as np
 import numpy.typing as npt
-from gymnasium.envs.mujoco import MujocoEnv as mjenv_gym
+from gymnasium.envs.mujoco import MujocoEnv
 from gymnasium.spaces import Box, Space
 from gymnasium.utils.ezpickle import EzPickle
 
@@ -21,7 +21,7 @@ from metaworld.utils.numpy import randint
 RenderMode: TypeAlias = "Literal['human', 'rgb_array', 'depth_array']"
 
 
-class SawyerMocapBase(mjenv_gym, ABC):
+class SawyerMocapBase(MujocoEnv, ABC):
     """Provides some commonly-shared functions for Sawyer Mujoco envs that use mocap for XYZ control."""
 
     mocap_low = np.array([-0.2, 0.5, 0.06])
@@ -55,7 +55,7 @@ class SawyerMocapBase(mjenv_gym, ABC):
         width: int = 480,
         height: int = 480,
     ) -> None:
-        mjenv_gym.__init__(
+        MujocoEnv.__init__(
             self,
             model_path=model_path,
             frame_skip=frame_skip,
@@ -124,14 +124,14 @@ class SawyerMocapBase(mjenv_gym, ABC):
         return {"state": state, "mjb": self.model_path, "mocap": self.get_env_state()}
 
     def __setstate__(self, state: EnvironmentStateDict) -> None:
-        """Sets the state of the environment from a dict exported through `__getstate__()`.
+        """Set the state of the environment from a dict exported through `__getstate__()`.
 
         Args:
             state: A dictionary containing the env state from the `__dict__` method, the model name (path) and the mocap state `(qpos, qvel)`.
 
         """
         self.__dict__ = state["state"]
-        mjenv_gym.__init__(
+        MujocoEnv.__init__(
             self,
             state["mjb"],
             frame_skip=self.frame_skip,
@@ -140,10 +140,10 @@ class SawyerMocapBase(mjenv_gym, ABC):
         self.set_env_state(state["mocap"])
 
     def reset_mocap_welds(self) -> None:
-        """Resets the mocap welds that we use for actuation."""
+        """Reset the mocap welds that we use for actuation."""
         if self.model.nmocap > 0 and self.model.eq_data is not None:
             for i in range(self.model.eq_data.shape[0]):
-                if self.model.eq_type[i] == mujoco.mjtEq.mjEQ_WELD:
+                if self.model.eq_type[i] == mujoco.mjtEq.mjEQ_WELD:  # ty:ignore[unresolved-attribute]
                     self.model.eq_data[i] = np.array(
                         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 5.0]
                     )
@@ -151,8 +151,6 @@ class SawyerMocapBase(mjenv_gym, ABC):
 
 class SawyerXYZEnv(SawyerMocapBase, EzPickle):
     """The base environment for all Sawyer Mujoco envs that use mocap for XYZ control."""
-
-    ENV_NAME: str  # OVERRIDE ME
 
     _HAND_SPACE = Box(
         np.array([-0.525, 0.348, -0.0525]),
@@ -228,7 +226,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             height=height,
         )
 
-        mujoco.mj_forward(
+        mujoco.mj_forward(  # ty:ignore[unresolved-attribute]
             self.model, self.data
         )  # *** DO NOT REMOVE: EZPICKLE WON'T WORK *** #
 
@@ -543,7 +541,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
     def step(
         self, action: npt.NDArray[np.float32]
-    ) -> tuple[npt.NDArray[np.float64], SupportsFloat, bool, bool, dict[str, Any]]:
+    ) -> tuple[npt.NDArray[np.float64], np.float64, bool, bool, dict[str, np.float64]]:
         """Step the environment.
 
         Args:
@@ -565,7 +563,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         for site in self._target_site_config:
             self._set_pos_site(*site)
 
-        mujoco.mj_forward(self.model, self.data)
+        mujoco.mj_forward(self.model, self.data)  # ty:ignore[unresolved-attribute]
         obs = self._get_obs()
 
         obs = np.clip(
@@ -584,7 +582,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             truncate = True
         return (
             np.array(obs, dtype=np.float64),
-            reward,
+            np.float64(reward),
             False,
             truncate,
             info,
@@ -592,7 +590,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
-    ) -> tuple[float, dict[str, Any]]:
+    ) -> tuple[float, dict[str, np.float64]]:
         """Does the heavy-lifting for `step()` -- namely, calculating reward and populating the `info` dict with training metrics.
 
         Returns:
