@@ -5,3 +5,4 @@
 * Benches
 * Fix lints
 * Replace pre commit with script
+* Update readme
