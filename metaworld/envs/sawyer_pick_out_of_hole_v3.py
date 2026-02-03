@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "pick-out-of-hole-v3"
+    env_name = "pick-out-of-hole-v3"
 
     _TARGET_RADIUS: float = 0.02
 
@@ -116,10 +116,7 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -136,9 +133,7 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
 
             obj_to_target = float(np.linalg.norm(obj - self._target_pos))
             tcp_to_obj = float(np.linalg.norm(obj - gripper))
-            in_place_margin = float(
-                np.linalg.norm(self.obj_init_pos - self._target_pos)
-            )
+            in_place_margin = float(np.linalg.norm(self.obj_init_pos - self._target_pos))
 
             threshold = 0.03
             # floor is a 3D funnel centered on the initial object pos
@@ -182,9 +177,7 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
             # Increase reward when properly grabbed obj
             grasp_success = near_object and lifted and not pinched_without_obj
             if grasp_success:
-                reward += 1.0 + 5.0 * reward_utils.hamacher_product(
-                    in_place, above_floor
-                )
+                reward += 1.0 + 5.0 * reward_utils.hamacher_product(in_place, above_floor)
             # Maximize reward on success
             if obj_to_target < self.TARGET_RADIUS:
                 reward = 10.0
@@ -226,11 +219,7 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
             tolerance = 0.01
             self.pickCompleted = objPos[2] >= (heightTarget - tolerance)
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 
@@ -238,9 +227,7 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
             if self.pickCompleted and not objDropped:
                 pickRew = hScale * (heightTarget - self.objHeight + 0.02)
             elif (reachDist < 0.1) and (objPos[2] > (self.objHeight + 0.005)):
-                pickRew = hScale * (
-                    min(heightTarget, objPos[2]) - self.objHeight + 0.02
-                )
+                pickRew = hScale * (min(heightTarget, objPos[2]) - self.objHeight + 0.02)
             else:
                 pickRew = 0
 

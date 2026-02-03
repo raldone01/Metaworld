@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerDrawerOpenEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "drawer-open-v3"
+    env_name = "drawer-open-v3"
 
     def __init__(
         self,
@@ -36,9 +36,7 @@ class SawyerDrawerOpenEnvV3(SawyerXYZEnv):
         goal_low = hand_low
         goal_high = hand_high
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         self.maxDist = 0.2
@@ -97,18 +95,14 @@ class SawyerDrawerOpenEnvV3(SawyerXYZEnv):
         self.model.body("drawer").pos = self.obj_init_pos
 
         # Set _target_pos to current drawer position (closed) minus an offset
-        self._target_pos = self.obj_init_pos + np.array(
-            [0.0, -0.16 - self.maxDist, 0.09]
-        )
+        self._target_pos = self.obj_init_pos + np.array([0.0, -0.16 - self.maxDist, 0.09])
         self.model.site("goal").pos = self._target_pos
         return self._get_obs()
 
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             gripper = obs[:3]
             handle = obs[4:7]

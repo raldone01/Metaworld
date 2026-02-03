@@ -102,7 +102,7 @@ def run_agent_episode_with_env(
     done = False
     agent_step = 0
     if tqdm is not None:
-        tqdm_desc = tqdm_desc or f"{cast(SawyerXYZEnv, env.unwrapped).ENV_NAME} seed={reset_info['seed']}"
+        tqdm_desc = tqdm_desc or f"{cast(SawyerXYZEnv, env.unwrapped).env_name} seed={reset_info['seed']}"
         pbar = tqdm(total=actual_max_episode_steps, desc=tqdm_desc)
     while True:
         # Record Pre-Step Data
@@ -209,7 +209,7 @@ def run_agent_episode_with_env(
     if rec_info_unscaled_reward:
         ret["info_unscaled_reward"] = info_unscaled_reward_stats[:trans_slice]
 
-    ret["env_name"] = env.unwrapped.ENV_NAME
+    ret["env_name"] = env.unwrapped.env_name
     ret["env_seed"] = reset_info["seed"]
     ret["agent_first_success_step"] = agent_first_success_step
     ret["total_episode_steps"] = agent_step
@@ -232,9 +232,7 @@ def run_agent_episode(
     linger_steps_after_success: int | None = None,
 ) -> dict:
     if linger_time_after_success is not None and linger_steps_after_success is not None:
-        raise ValueError(
-            "Only one of linger_time_after_success or linger_steps_after_success may be specified."
-        )
+        raise ValueError("Only one of linger_time_after_success or linger_steps_after_success may be specified.")
 
     env = gym.make(
         "Meta-World/MT1-v3",
@@ -246,9 +244,7 @@ def run_agent_episode(
     )
 
     if linger_time_after_success is not None:
-        linger_steps_after_success = _compute_required_max_episode_steps_for_lingering(
-            env, linger_time_after_success
-        )
+        linger_steps_after_success = _compute_required_max_episode_steps_for_lingering(env, linger_time_after_success)
 
     episode_results = run_agent_episode_with_env(
         env=env,

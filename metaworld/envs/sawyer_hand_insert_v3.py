@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerHandInsertEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "hand-insert-v3"
+    env_name = "hand-insert-v3"
 
     TARGET_RADIUS: float = 0.05
 
@@ -75,9 +75,7 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
             "success": float(obj_to_target <= 0.05),
             "near_object": float(tcp_to_obj <= 0.03),
             "grasp_success": float(
-                self.touching_main_object
-                and (tcp_open > 0)
-                and (obj[2] - 0.02 > self.obj_init_pos[2])
+                self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2])
             ),
             "grasp_reward": grasp_reward,
             "in_place_reward": in_place_reward,
@@ -120,16 +118,12 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             obj = obs[4:7]
 
             target_to_obj = float(np.linalg.norm(obj - self._target_pos))
-            target_to_obj_init = float(
-                np.linalg.norm(self.obj_init_pos - self._target_pos)
-            )
+            target_to_obj_init = float(np.linalg.norm(self.obj_init_pos - self._target_pos))
 
             in_place = reward_utils.tolerance(
                 target_to_obj,

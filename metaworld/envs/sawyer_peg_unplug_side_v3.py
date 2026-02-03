@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "peg-unplug-side-v3"
+    env_name = "peg-unplug-side-v3"
 
     def __init__(
         self,
@@ -34,9 +34,7 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(

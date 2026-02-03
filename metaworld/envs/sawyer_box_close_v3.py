@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerBoxCloseEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "box-close-v3"
+    env_name = "box-close-v3"
 
     def __init__(
         self,
@@ -107,9 +107,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
         self._target_pos = goal_pos[-3:]
 
-        self.model.body("boxbody").pos = np.concatenate(
-            [self._target_pos[:2], [box_height]]
-        )
+        self.model.body("boxbody").pos = np.concatenate([self._target_pos[:2], [box_height]])
 
         for _ in range(self.frame_skip):
             mujoco.mj_step(self.model, self.data)
@@ -122,10 +120,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
 
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -146,9 +141,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         return max(1.0 - error / 0.2, 0.0)
 
     @staticmethod
-    def _reward_pos(
-        obs: npt.NDArray[np.float64], target_pos: npt.NDArray[Any]
-    ) -> tuple[float, float]:
+    def _reward_pos(obs: npt.NDArray[np.float64], target_pos: npt.NDArray[Any]) -> tuple[float, float]:
         hand = obs[:3]
         lid = obs[4:7] + np.array([0.0, 0.0, 0.02])
 
@@ -197,9 +190,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, bool]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             reward_grab = SawyerBoxCloseEnvV3._reward_grab_effort(actions)
             reward_quat = SawyerBoxCloseEnvV3._reward_quat(obs)
@@ -261,11 +252,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
             else:
                 self.pickCompleted = False
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 

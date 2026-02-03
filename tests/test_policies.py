@@ -6,9 +6,9 @@ from metaworld.env_dict import ENV_NAMES
 
 
 @pytest.mark.parametrize("env_name", ENV_NAMES)
-# TODO: Add 'v1' back when all the reward functions are fixed to correctly report success.
+# TODO @raldone01: Add 'v1' back when all the reward functions are fixed to correctly report success.
 @pytest.mark.parametrize("reward_function_version", ["v2"])
-def test_policies(env_name, reward_function_version):
+def test_policies(env_name: str, reward_function_version: str):
     agent = ExpertPolicyMetaworldAgent()
 
     max_episode_steps = 500
@@ -44,6 +44,4 @@ def test_policies(env_name, reward_function_version):
     )
 
     # Verify that all seeds are unique
-    assert len(set(ep_seeds)) == num_episodes, (
-        f"Not all episode seeds are unique for env {env_name}"
-    )
+    assert len(set(ep_seeds)) == num_episodes, f"Not all episode seeds are unique for env {env_name}"

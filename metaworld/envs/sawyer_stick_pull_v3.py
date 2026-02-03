@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerStickPullEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "stick-pull-v3"
+    env_name = "stick-pull-v3"
 
     def __init__(
         self,
@@ -73,15 +73,10 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
 
         assert self._target_pos is not None and self.obj_init_pos is not None
         success = float(
-            (np.linalg.norm(handle - self._target_pos) <= 0.12)
-            and self._stick_is_inserted(handle, end_of_stick)
+            (np.linalg.norm(handle - self._target_pos) <= 0.12) and self._stick_is_inserted(handle, end_of_stick)
         )
         near_object = float(tcp_to_obj <= 0.03)
-        grasp_success = float(
-            self.touching_main_object
-            and (tcp_open > 0)
-            and (stick[2] - 0.02 > self.obj_init_pos[2])
-        )
+        grasp_success = float(self.touching_main_object and (tcp_open > 0) and (stick[2] - 0.02 > self.obj_init_pos[2]))
 
         info = {
             "success": success,
@@ -165,9 +160,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
         self.maxPullDist = np.linalg.norm(self.obj_init_pos[:2] - self._target_pos[:-1])
         self.maxPlaceDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget])
                 - np.array(self.stick_init_pos)
             )
             + self.heightTarget
@@ -175,9 +168,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def _stick_is_inserted(
-        self, handle: npt.NDArray[Any], end_of_stick: npt.NDArray[Any]
-    ) -> bool:
+    def _stick_is_inserted(self, handle: npt.NDArray[Any], end_of_stick: npt.NDArray[Any]) -> bool:
         return (
             (end_of_stick[0] >= handle[0])
             and (np.abs(end_of_stick[1] - handle[1]) <= 0.040)
@@ -203,9 +194,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
 
             yz_scaling = np.array([1.0, 1.0, 2.0])
             stick_to_container = float(np.linalg.norm((stick - container) * yz_scaling))
-            stick_in_place_margin = float(
-                np.linalg.norm((self.stick_init_pos - container_init_pos) * yz_scaling)
-            )
+            stick_in_place_margin = float(np.linalg.norm((self.stick_init_pos - container_init_pos) * yz_scaling))
             stick_in_place = reward_utils.tolerance(
                 stick_to_container,
                 bounds=(0, _TARGET_RADIUS),
@@ -214,9 +203,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
             )
 
             stick_to_target = float(np.linalg.norm(stick - target))
-            stick_in_place_margin_2 = float(
-                np.linalg.norm(self.stick_init_pos - target)
-            )
+            stick_in_place_margin_2 = float(np.linalg.norm(self.stick_init_pos - target))
             stick_in_place_2 = reward_utils.tolerance(
                 stick_to_target,
                 bounds=(0, _TARGET_RADIUS),
@@ -225,9 +212,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
             )
 
             container_to_target = float(np.linalg.norm(container - target))
-            container_in_place_margin = float(
-                np.linalg.norm(self.obj_init_pos - target)
-            )
+            container_in_place_margin = float(np.linalg.norm(self.obj_init_pos - target))
             container_in_place = reward_utils.tolerance(
                 container_to_target,
                 bounds=(0, _TARGET_RADIUS),
@@ -245,29 +230,17 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
                 high_density=True,
             )
 
-            grasp_success = (
-                tcp_to_stick < 0.02
-                and (tcp_opened > 0)
-                and (stick[2] - 0.01 > self.stick_init_pos[2])
-            )
+            grasp_success = tcp_to_stick < 0.02 and (tcp_opened > 0) and (stick[2] - 0.01 > self.stick_init_pos[2])
             object_grasped = 1 if grasp_success else object_grasped
 
-            in_place_and_object_grasped = reward_utils.hamacher_product(
-                object_grasped, stick_in_place
-            )
+            in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, stick_in_place)
             reward = in_place_and_object_grasped
 
             if grasp_success:
                 reward = 1.0 + in_place_and_object_grasped + 5.0 * stick_in_place
 
                 if self._stick_is_inserted(handle, end_of_stick):
-                    reward = (
-                        1.0
-                        + in_place_and_object_grasped
-                        + 5.0
-                        + 2.0 * stick_in_place_2
-                        + 1.0 * container_in_place
-                    )
+                    reward = 1.0 + in_place_and_object_grasped + 5.0 + 2.0 * stick_in_place_2 + 1.0 * container_in_place
 
                     if handle_to_target <= 0.12:
                         reward = 10.0
@@ -305,11 +278,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
             tolerance = 0.01
             self.pickCompleted = stickPos[2] >= (heightTarget - tolerance)
 
-            objDropped = (
-                (stickPos[2] < (self.stickHeight + 0.005))
-                and (pullDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (stickPos[2] < (self.stickHeight + 0.005)) and (pullDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 

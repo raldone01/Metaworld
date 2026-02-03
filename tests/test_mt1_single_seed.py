@@ -11,7 +11,7 @@ from metaworld.env_dict import ENV_NAMES
 
 
 @pytest.mark.parametrize("env_name", ENV_NAMES)
-def test_env_mt1_single_seed(env_name):
+def test_env_mt1_single_seed(env_name: str):
     agent = RandomMetaworldAgent(seed=42)
 
     max_episode_steps = 200

@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerPlateSlideEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "plate-slide-v3"
+    env_name = "plate-slide-v3"
 
     OBJ_RADIUS: float = 0.04
 
@@ -137,9 +137,7 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
             )
 
             tcp_to_obj = float(np.linalg.norm(tcp - obj))
-            obj_grasped_margin = float(
-                np.linalg.norm(self.init_tcp - self.obj_init_pos)
-            )
+            obj_grasped_margin = float(np.linalg.norm(self.init_tcp - self.obj_init_pos))
 
             object_grasped = reward_utils.tolerance(
                 tcp_to_obj,
@@ -148,9 +146,7 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
                 sigmoid="long_tail",
             )
 
-            in_place_and_object_grasped = reward_utils.hamacher_product(
-                object_grasped, in_place
-            )
+            in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place)
             reward = 8 * in_place_and_object_grasped
 
             if obj_to_target < _TARGET_RADIUS:

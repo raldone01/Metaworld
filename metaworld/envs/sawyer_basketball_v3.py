@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerBasketballEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "basketball-v3"
+    env_name = "basketball-v3"
 
     PAD_SUCCESS_MARGIN: float = 0.06
     TARGET_RADIUS: float = 0.08
@@ -77,9 +77,7 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
         info = {
             "success": float(obj_to_target <= self.TARGET_RADIUS),
             "near_object": float(tcp_to_obj <= 0.05),
-            "grasp_success": float(
-                (tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])
-            ),
+            "grasp_success": float((tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])),
             "grasp_reward": grasp_reward,
             "in_place_reward": in_place_reward,
             "obj_to_target": obj_to_target,
@@ -118,10 +116,7 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
 
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -166,19 +161,11 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
                 xz_thresh=0.005,
                 high_density=True,
             )
-            if (
-                tcp_to_obj < 0.035
-                and tcp_opened > 0
-                and obj[2] - 0.01 > self.obj_init_pos[2]
-            ):
+            if tcp_to_obj < 0.035 and tcp_opened > 0 and obj[2] - 0.01 > self.obj_init_pos[2]:
                 object_grasped = 1.0
             reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-            if (
-                tcp_to_obj < 0.035
-                and tcp_opened > 0
-                and obj[2] - 0.01 > self.obj_init_pos[2]
-            ):
+            if tcp_to_obj < 0.035 and tcp_opened > 0 and obj[2] - 0.01 > self.obj_init_pos[2]:
                 reward += 1.0 + 5.0 * in_place
             if target_to_obj < self.TARGET_RADIUS:
                 reward = 10.0
@@ -224,11 +211,7 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
             else:
                 self.pickCompleted = False
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
 
             hScale = 100
             if self.pickCompleted and not objDropped:
@@ -242,11 +225,7 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
             c2 = 0.01
             c3 = 0.001
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
 
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:

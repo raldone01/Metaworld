@@ -28,7 +28,7 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
 
-    ENV_NAME: str = "pick-place-v3"
+    env_name = "pick-place-v3"
 
     def __init__(
         self,
@@ -86,11 +86,7 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
         assert self.obj_init_pos is not None
-        grasp_success = float(
-            self.touching_main_object
-            and (tcp_open > 0)
-            and (obj[2] - 0.02 > self.obj_init_pos[2])
-        )
+        grasp_success = float(self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
         info = {
             "success": success,
             "near_object": near_object,
@@ -110,9 +106,7 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         return self.get_body_com("obj")
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return Rotation.from_matrix(
-            self.data.geom("objGeom").xmat.reshape(3, 3)
-        ).as_quat()
+        return Rotation.from_matrix(self.data.geom("objGeom").xmat.reshape(3, 3)).as_quat()
 
     def fix_extreme_obj_pos(self, orig_init_pos: npt.NDArray[Any]) -> npt.NDArray[Any]:
         # This is to account for meshes for the geom and object are not
@@ -122,9 +116,7 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         adjusted_pos = orig_init_pos[:2] + diff
         # The convention we follow is that body_com[2] is always 0,
         # and geom_pos[2] is the object height
-        return np.array(
-            [adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]]
-        )
+        return np.array([adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]])
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
@@ -151,17 +143,12 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
 
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
 
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 
         return self._get_obs()
 
@@ -185,12 +172,8 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         right_pad = self.get_body_com("rightpad")
         delta_object_y_left_pad = left_pad[1] - obj_pos[1]
         delta_object_y_right_pad = obj_pos[1] - right_pad[1]
-        right_caging_margin = abs(
-            abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin
-        )
-        left_caging_margin = abs(
-            abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin
-        )
+        right_caging_margin = abs(abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin)
+        left_caging_margin = abs(abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin)
 
         right_caging = reward_utils.tolerance(
             delta_object_y_right_pad,
@@ -216,9 +199,7 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         assert self.obj_init_pos is not None
         init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
-        tcp_obj_x_z_margin = (
-            np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
-        )
+        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
 
         x_z_caging = reward_utils.tolerance(
             tcp_obj_norm_x_z,
@@ -258,16 +239,10 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
             )
 
             object_grasped = self._gripper_caging_reward(action, obj)
-            in_place_and_object_grasped = reward_utils.hamacher_product(
-                object_grasped, in_place
-            )
+            in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place)
             reward = in_place_and_object_grasped
 
-            if (
-                tcp_to_obj < 0.02
-                and (tcp_opened > 0)
-                and (obj[2] - 0.01 > self.obj_init_pos[2])
-            ):
+            if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
                 reward += 1.0 + 5.0 * in_place
             if obj_to_target < _TARGET_RADIUS:
                 reward = 10.0
@@ -314,11 +289,7 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
             else:
                 self.pickCompleted = False
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 
@@ -333,11 +304,7 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
             c1 = 1000
             c2 = 0.01
             c3 = 0.001
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
 
             cond = self.pickCompleted and (reachDist < 0.1) and not (objDropped)
             if cond:

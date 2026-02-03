@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerDialTurnEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "dial-turn-v3"
+    env_name = "dial-turn-v3"
 
     TARGET_RADIUS: float = 0.07
 
@@ -36,9 +36,7 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
@@ -79,9 +77,7 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         dial_center = self.get_body_com("dial").copy()
         dial_angle_rad = self.data.joint("knob_Joint_1").qpos
 
-        offset = np.array(
-            [np.sin(dial_angle_rad).item(), -np.cos(dial_angle_rad).item(), 0.0]
-        )
+        offset = np.array([np.sin(dial_angle_rad).item(), -np.cos(dial_angle_rad).item(), 0.0])
         dial_radius = 0.05
 
         offset *= dial_radius
@@ -113,9 +109,7 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             obj = self._get_pos_objects()
             dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
@@ -136,9 +130,7 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
 
             dial_reach_radius = 0.005
             tcp_to_obj = float(np.linalg.norm(dial_push_position - tcp).item())
-            tcp_to_obj_init = float(
-                np.linalg.norm(self.dial_push_position - self.init_tcp).item()
-            )
+            tcp_to_obj_init = float(np.linalg.norm(self.dial_push_position - self.init_tcp).item())
             reach = reward_utils.tolerance(
                 tcp_to_obj,
                 bounds=(0, dial_reach_radius),

@@ -28,7 +28,7 @@ class SawyerReachWallEnvV3(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
     """
 
-    ENV_NAME: str = "reach-wall-v3"
+    env_name = "reach-wall-v3"
 
     def __init__(
         self,
@@ -116,24 +116,17 @@ class SawyerReachWallEnvV3(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
 
         self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
 
         return self._get_obs()
 
-    def compute_reward(
-        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
-    ) -> tuple[float, float, float]:
+    def compute_reward(self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]) -> tuple[float, float, float]:
         assert self._target_pos is not None and self.obj_init_pos is not None
         if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05

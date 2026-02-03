@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerFaucetCloseEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "faucet-close-v3"
+    env_name = "faucet-close-v3"
 
     def __init__(
         self,
@@ -37,9 +37,7 @@ class SawyerFaucetCloseEnvV3(SawyerXYZEnv):
         goal_low = hand_low
         goal_high = hand_high
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
@@ -78,9 +76,7 @@ class SawyerFaucetCloseEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `_target_site_config`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `_target_site_config`."
         return [
             ("goal_close", self._target_pos),
             ("goal_open", np.array([10.0, 10.0, 10.0])),
@@ -100,9 +96,7 @@ class SawyerFaucetCloseEnvV3(SawyerXYZEnv):
         # Set mujoco body to computed position
         self.model.body("faucetBase").pos = self.obj_init_pos
 
-        self._target_pos = self.obj_init_pos + np.array(
-            [-self._handle_length, 0.0, 0.125]
-        )
+        self._target_pos = self.obj_init_pos + np.array([-self._handle_length, 0.0, 0.125])
         mujoco.mj_forward(self.model, self.data)
         self.model.site("goal_close").pos = self._target_pos
 
@@ -118,9 +112,7 @@ class SawyerFaucetCloseEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             obj = obs[4:7]
             tcp = self.tcp_center

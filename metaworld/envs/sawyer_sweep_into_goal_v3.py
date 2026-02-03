@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "sweep-into-v3"
+    env_name = "sweep-into-v3"
 
     OBJ_RADIUS: float = 0.02
 
@@ -105,9 +105,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         self.model.site("goal").pos = self._target_pos
 
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 
         return self._get_obs()
 
@@ -132,12 +130,8 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         right_pad = self.get_body_com("rightpad")
         delta_object_y_left_pad = left_pad[1] - obj_pos[1]
         delta_object_y_right_pad = obj_pos[1] - right_pad[1]
-        right_caging_margin = abs(
-            abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin
-        )
-        left_caging_margin = abs(
-            abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin
-        )
+        right_caging_margin = abs(abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin)
+        left_caging_margin = abs(abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin)
 
         right_caging = reward_utils.tolerance(
             delta_object_y_right_pad,
@@ -180,9 +174,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
 
-        tcp_obj_x_z_margin = (
-            np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
-        )
+        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         x_z_caging = reward_utils.tolerance(
             float(tcp_obj_norm_x_z),
             bounds=(0, x_z_success_margin),
@@ -230,9 +222,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
             )
 
             object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-            in_place_and_object_grasped = reward_utils.hamacher_product(
-                object_grasped, in_place
-            )
+            in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place)
 
             reward = (2 * object_grasped) + (6 * in_place_and_object_grasped)
 
@@ -269,9 +259,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
 
             self.reachCompleted = reachDist < 0.05
             assert objPos is not None and self.obj_init_pos is not None
-            if (
-                objPos[-1] < self.obj_init_pos[-1] - 0.05 and 0.4 < objPos[1] < 1.0
-            ):  # ignore: type
+            if objPos[-1] < self.obj_init_pos[-1] - 0.05 and 0.4 < objPos[1] < 1.0:  # ignore: type
                 reachRew = 0.0  # type: ignore
                 reachDist = 0.0  # type: ignore
                 pushDist = 0.0  # type: ignore

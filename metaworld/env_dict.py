@@ -1,5 +1,4 @@
-"""
-Dictionaries mapping environment name strings to environment classes,
+"""Dictionaries mapping environment name strings to environment classes,
 and organising them into various collections and splits for the benchmarks.
 """
 
@@ -13,7 +12,7 @@ from metaworld.sawyer_xyz_env import SawyerXYZEnv
 
 ENV_CLASS_MAP: OrderedDict[str, type[SawyerXYZEnv]] = OrderedDict(
     [
-        (getattr(env_class, "ENV_NAME"), env_class)
+        (getattr(env_class, "env_name"), env_class)
         for env_class in [
             envs.SawyerNutAssemblyEnvV3,
             envs.SawyerBasketballEnvV3,

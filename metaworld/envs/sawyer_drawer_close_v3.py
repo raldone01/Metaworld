@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerDrawerCloseEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "drawer-close-v3"
+    env_name = "drawer-close-v3"
 
     _TARGET_RADIUS: float = 0.04
 
@@ -38,9 +38,7 @@ class SawyerDrawerCloseEnvV3(SawyerXYZEnv):
         goal_low = hand_low
         goal_high = hand_high
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         self.maxDist = 0.15

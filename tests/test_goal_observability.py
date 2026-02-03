@@ -2,6 +2,7 @@ from typing import cast
 
 import gymnasium as gym
 import numpy as np
+import numpy.typing as npt
 import pytest
 
 from metaworld.env_dict import (
@@ -15,9 +16,9 @@ from metaworld.sawyer_xyz_env import SawyerXYZEnv
 # --- Helper Functions ---
 
 
-def _assert_goal_observability(obs, env: gym.Env, goal_observable: bool):
-    """Checks a single observation/env pair."""
-    env_name = cast(SawyerXYZEnv, env.unwrapped).ENV_NAME
+def _assert_goal_observability(obs: npt.NDArray[np.float64], env: gym.Env, goal_observable: bool) -> None:
+    """Check a single observation/env pair."""
+    env_name = cast(SawyerXYZEnv, env.unwrapped).env_name
     zero_pos = np.zeros(3)
     goal_pos = obs[-3:]
 
@@ -31,19 +32,19 @@ def _assert_goal_observability(obs, env: gym.Env, goal_observable: bool):
         )
 
 
-def _verify_goal_observability(env_instance, expected_observable: bool):
-    """Handles env.reset, checking vector vs scalar envs, and closing."""
+def _verify_goal_observability(env_instance: gym.Env | gym.vector.VectorEnv, expected_observable: bool) -> None:
+    """Handle a `env.reset()`, checking vector vs scalar envs, and closing."""
     try:
         obs, _ = env_instance.reset()
 
         # Check if it is a VectorEnv (has attribute 'envs')
         if hasattr(env_instance, "envs"):
             # Iterate through vector environments
-            for single_obs, single_env in zip(obs, env_instance.envs):
+            for single_obs, single_env in zip(obs, cast(list[gym.Env], env_instance.envs)):
                 _assert_goal_observability(single_obs, single_env, expected_observable)
         else:
             # Standard single environment
-            _assert_goal_observability(obs, env_instance, expected_observable)
+            _assert_goal_observability(obs, cast(gym.Env, env_instance), expected_observable)
 
     finally:
         env_instance.close()
@@ -54,14 +55,14 @@ def _verify_goal_observability(env_instance, expected_observable: bool):
 
 @pytest.mark.parametrize("goal_observable", [True, False])
 @pytest.mark.parametrize("env_name", ENV_NAMES)
-def test_v3_env_explicit_goal_observability(env_name, goal_observable):
+def test_v3_env_explicit_goal_observability(env_name: str, goal_observable: bool):
     """Test explicit goal observability flags on individual V3 environments."""
     env = ENV_CLASS_MAP[env_name](goal_observable=goal_observable)
     _verify_goal_observability(env, goal_observable)
 
 
 @pytest.mark.parametrize("env_name", ENV_NAMES)
-def test_v3_env_default_goal_observability(env_name):
+def test_v3_env_default_goal_observability(env_name: str):
     """Test default goal observability behavior (should be observable) on V3 environments."""
     env = ENV_CLASS_MAP[env_name]()
     _verify_goal_observability(env, expected_observable=True)
@@ -78,13 +79,13 @@ def test_v3_env_default_goal_observability(env_name):
         (True, True),  # Explicit True
     ],
 )
-def test_mt1_goal_observability(override_setting, expected):
+def test_mt1_goal_observability(override_setting: bool | None, expected: bool):
     """Test MT1 specific loading."""
     kwargs = {"env_name": "reach-v3"}
     if override_setting is not None:
         kwargs["goal_observable"] = override_setting
 
-    env = gym.make("Meta-World/MT1-v3", **kwargs)
+    env = gym.make("Meta-World/MT1-v3", **kwargs)  # ty:ignore[invalid-argument-type]
     _verify_goal_observability(env, expected)
 
 
@@ -96,7 +97,7 @@ def test_mt1_goal_observability(override_setting, expected):
         (False, False),  # Override to Hidden
     ],
 )
-def test_mt_benchmarks_goal_observability(benchmark_name, override_setting, expected):
+def test_mt_benchmarks_goal_observability(benchmark_name: str, override_setting: bool | None, expected: bool):
     """Test standard MT benchmarks (MT10, MT50, etc)."""
     kwargs = {}
     if override_setting is not None:
@@ -113,13 +114,13 @@ def test_mt_benchmarks_goal_observability(benchmark_name, override_setting, expe
         (False, False),  # Override
     ],
 )
-def test_mt_custom_goal_observability(override_setting, expected):
+def test_mt_custom_goal_observability(override_setting: bool | None, expected: bool):
     """Test Custom MT environment construction."""
     kwargs = {"train_env_names": ["reach-v3"]}
     if override_setting is not None:
         kwargs["goal_observable"] = override_setting
 
-    envs = gym.make_vec("Meta-World/MTCustom-v3", **kwargs)
+    envs = gym.make_vec("Meta-World/MTCustom-v3", **kwargs)  # type: ignore[invalid-argument-type]
     _verify_goal_observability(envs, expected)
 
 
@@ -134,13 +135,13 @@ def test_mt_custom_goal_observability(override_setting, expected):
         (False, False),  # Explicit False
     ],
 )
-def test_ml1_goal_observability(override_setting, expected):
+def test_ml1_goal_observability(override_setting: bool | None, expected: bool):
     """Test ML1 specific loading."""
     kwargs = {"env_name": "reach-v3", "split": "train"}
     if override_setting is not None:
         kwargs["goal_observable"] = override_setting
 
-    envs = gym.make_vec("Meta-World/ML1-v3", **kwargs)
+    envs = gym.make_vec("Meta-World/ML1-v3", **kwargs)  # type: ignore[invalid-argument-type]
     _verify_goal_observability(envs, expected)
 
 
@@ -152,13 +153,13 @@ def test_ml1_goal_observability(override_setting, expected):
         (True, True),  # Override to Visible
     ],
 )
-def test_ml_benchmarks_goal_observability(benchmark_name, override_setting, expected):
+def test_ml_benchmarks_goal_observability(benchmark_name: str, override_setting: bool | None, expected: bool):
     """Test standard ML benchmarks (ML10, ML45, etc)."""
     kwargs = {"split": "train"}
     if override_setting is not None:
         kwargs["goal_observable"] = override_setting
 
-    envs = gym.make_vec(f"Meta-World/{benchmark_name}", **kwargs)
+    envs = gym.make_vec(f"Meta-World/{benchmark_name}", **kwargs)  # type: ignore[invalid-argument-type]
     _verify_goal_observability(envs, expected)
 
 
@@ -169,7 +170,7 @@ def test_ml_benchmarks_goal_observability(benchmark_name, override_setting, expe
         (True, True),  # Override
     ],
 )
-def test_ml_custom_goal_observability(override_setting, expected):
+def test_ml_custom_goal_observability(override_setting: bool | None, expected: bool):
     """Test Custom ML environment construction."""
     kwargs = {
         "train_env_names": ["reach-v3"],
@@ -179,5 +180,5 @@ def test_ml_custom_goal_observability(override_setting, expected):
     if override_setting is not None:
         kwargs["goal_observable"] = override_setting
 
-    envs = gym.make_vec("Meta-World/MLCustom-v3", **kwargs)
+    envs = gym.make_vec("Meta-World/MLCustom-v3", **kwargs)  # type: ignore[invalid-argument-type]
     _verify_goal_observability(envs, expected)

@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "door-unlock-v3"
+    env_name = "door-unlock-v3"
 
     def __init__(
         self,
@@ -36,9 +36,7 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
 
         self._lock_length = 0.1
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
@@ -77,9 +75,7 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `_target_site_config`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `_target_site_config`."
         return [
             ("goal_unlock", self._target_pos),
             ("goal_lock", np.array([10.0, 10.0, 10.0])),
@@ -117,9 +113,7 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             del action
             gripper = obs[:3]

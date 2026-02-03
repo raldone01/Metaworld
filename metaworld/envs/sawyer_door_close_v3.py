@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerDoorCloseEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "door-close-v3"
+    env_name = "door-close-v3"
 
     def __init__(
         self,
@@ -39,9 +39,7 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
 
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -60,9 +58,7 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         return self.data.geom("handle").xpos.copy()
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return Rotation.from_matrix(
-            self.data.geom("handle").xmat.reshape(3, 3)
-        ).as_quat()
+        return Rotation.from_matrix(self.data.geom("handle").xmat.reshape(3, 3)).as_quat()
 
     def _set_obj_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.copy()
@@ -87,9 +83,7 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         self.model.site("goal").pos = self._target_pos
 
         assert self._target_pos is not None
-        self.maxPullDist = np.linalg.norm(
-            self.data.geom("handle").xpos[:-1] - self._target_pos[:-1]
-        )
+        self.maxPullDist = np.linalg.norm(self.data.geom("handle").xpos[:-1] - self._target_pos[:-1])
 
         return self._get_obs()
 
@@ -108,9 +102,7 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         }
         return reward, info
 
-    def compute_reward(
-        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
-    ) -> tuple[float, float, float]:
+    def compute_reward(self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]) -> tuple[float, float, float]:
         assert self._target_pos is not None and self.hand_init_pos is not None, (
             "`reset_model()` must be called before `compute_reward()`."
         )

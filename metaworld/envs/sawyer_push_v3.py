@@ -28,7 +28,7 @@ class SawyerPushEnvV3(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
 
-    ENV_NAME: str = "push-v3"
+    env_name = "push-v3"
 
     TARGET_RADIUS: float = 0.05
 
@@ -91,9 +91,7 @@ class SawyerPushEnvV3(SawyerXYZEnv):
             "success": float(target_to_obj <= self.TARGET_RADIUS),
             "near_object": float(tcp_to_obj <= 0.03),
             "grasp_success": float(
-                self.touching_main_object
-                and (tcp_opened > 0)
-                and (obj[2] - 0.02 > self.obj_init_pos[2])
+                self.touching_main_object and (tcp_opened > 0) and (obj[2] - 0.02 > self.obj_init_pos[2])
             ),
             "grasp_reward": object_grasped,
             "in_place_reward": in_place,
@@ -118,16 +116,12 @@ class SawyerPushEnvV3(SawyerXYZEnv):
         adjusted_pos = orig_init_pos[:2] + diff
         # The convention we follow is that body_com[2] is always 0,
         # and geom_pos[2] is the object height
-        return np.array(
-            [adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]]
-        )
+        return np.array([adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]])
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = np.array(
-            self.fix_extreme_obj_pos(self.init_config["obj_init_pos"])
-        )
+        self.obj_init_pos = np.array(self.fix_extreme_obj_pos(self.init_config["obj_init_pos"]))
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
@@ -143,15 +137,10 @@ class SawyerPushEnvV3(SawyerXYZEnv):
 
         self.objHeight = self.data.geom("objGeom").xpos[2]
         self.heightTarget = self.objHeight + 0.04
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -167,9 +156,7 @@ class SawyerPushEnvV3(SawyerXYZEnv):
             tcp_opened = obs[3]
             tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
             target_to_obj = float(np.linalg.norm(obj - self._target_pos))
-            target_to_obj_init = float(
-                np.linalg.norm(self.obj_init_pos - self._target_pos)
-            )
+            target_to_obj_init = float(np.linalg.norm(self.obj_init_pos - self._target_pos))
 
             in_place = reward_utils.tolerance(
                 target_to_obj,

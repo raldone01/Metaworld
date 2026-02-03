@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerDoorEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "door-open-v3"
+    env_name = "door-open-v3"
 
     def __init__(
         self,
@@ -38,9 +38,7 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
@@ -89,9 +87,7 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
         return self.data.geom("handle").xpos.copy()
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return Rotation.from_matrix(
-            self.data.geom("handle").xmat.reshape(3, 3)
-        ).as_quat()
+        return Rotation.from_matrix(self.data.geom("handle").xmat.reshape(3, 3)).as_quat()
 
     def _set_obj_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.copy()
@@ -111,9 +107,7 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
         self.model.site("goal").pos = self._target_pos
         self._set_obj_xyz(np.array(0))
         assert self._target_pos is not None
-        self.maxPullDist = np.linalg.norm(
-            self.data.geom("handle").xpos[:-1] - self._target_pos[:-1]
-        )
+        self.maxPullDist = np.linalg.norm(self.data.geom("handle").xpos[:-1] - self._target_pos[:-1])
         self.target_reward = 1000 * self.maxPullDist + 1000 * 2
         self.model.site("goal").pos = self._target_pos
         return self._get_obs()
@@ -171,9 +165,7 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             theta = float(self.data.joint("doorjoint").qpos.item())
 

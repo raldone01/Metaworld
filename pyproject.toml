@@ -57,18 +57,35 @@ include = ["metaworld", "metaworld.*"]
 default-groups = "all"
 
 [tool.ruff]
-line-length = 110
+line-length = 120
 
 [tool.ruff.lint]
 extend-select = [
     "E501", # https://docs.astral.sh/ruff/rules/line-too-long/
     "T100", # https://docs.astral.sh/ruff/rules/#flake8-debugger-t10
-    "T2",   # https://docs.astral.sh/ruff/rules/#flake8-print-t20
-    "TD",   # https://docs.astral.sh/ruff/rules/#flake8-todos-td
-    "UP",   # https://docs.astral.sh/ruff/rules/#pyupgrade-up
-    "I",    # https://docs.astral.sh/ruff/rules/#isort-i
-    "N",    # https://docs.astral.sh/ruff/rules/#pep8-naming-n
-    "D",    # https://docs.astral.sh/ruff/rules/#pydocstyle-d
-    "ANN",  # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
+    #"T2",   # https://docs.astral.sh/ruff/rules/#flake8-print-t20
+    "TD",  # https://docs.astral.sh/ruff/rules/#flake8-todos-td
+    "UP",  # https://docs.astral.sh/ruff/rules/#pyupgrade-up
+    "I",   # https://docs.astral.sh/ruff/rules/#isort-i
+    "N",   # https://docs.astral.sh/ruff/rules/#pep8-naming-n
+    "D",   # https://docs.astral.sh/ruff/rules/#pydocstyle-d
+    "ANN", # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
 ]
-unfixable = ["F401"] # https://docs.astral.sh/ruff/rules/unused-import/
+unfixable = [
+    # https://docs.astral.sh/ruff/rules/unused-import/
+    "F401",
+]
+ignore = [
+    # https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function/
+    "ANN201",
+    # https://docs.astral.sh/ruff/rules/undocumented-public-function/
+    "D103",
+    # https://docs.astral.sh/ruff/rules/undocumented-public-module/
+    "D100",
+    # https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary/
+    "D205",
+    # https://docs.astral.sh/ruff/rules/missing-todo-link
+    "TD003",
+    # https://docs.astral.sh/ruff/rules/undocumented-public-init
+    "D107",
+]

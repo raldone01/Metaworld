@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerHammerEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "hammer-v3"
+    env_name = "hammer-v3"
 
     HAMMER_HANDLE_LENGTH = 0.14
 
@@ -38,9 +38,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
         self.hand_init_pos = self.init_config["hand_init_pos"]
         self.nail_init_pos: npt.NDArray[Any] | None = None
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
@@ -80,14 +78,10 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
         return self.model.geom_name2id("HammerHandle")
 
     def _get_pos_objects(self) -> npt.NDArray[Any]:
-        return np.hstack(
-            (self.get_body_com("hammer").copy(), self.get_body_com("nail_link").copy())
-        )
+        return np.hstack((self.get_body_com("hammer").copy(), self.get_body_com("nail_link").copy()))
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return np.hstack(
-            (self.data.body("hammer").xquat, self.data.body("nail_link").xquat)
-        )
+        return np.hstack((self.data.body("hammer").xquat, self.data.body("nail_link").xquat))
 
     def _set_hammer_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.flat.copy()
@@ -185,9 +179,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
                 xz_thresh=0.01,
                 high_density=True,
             )
-            reward_in_place = SawyerHammerEnvV3._reward_pos(
-                hammer_head, self._target_pos
-            )
+            reward_in_place = SawyerHammerEnvV3._reward_pos(hammer_head, self._target_pos)
 
             reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
             # Override reward on success. We check that reward is above a threshold
@@ -232,11 +224,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
             else:
                 self.pickCompleted = False
 
-            objDropped = (
-                (hammerPos[2] < (self.hammerHeight + 0.005))
-                and (hammerDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (hammerPos[2] < (self.hammerHeight + 0.005)) and (hammerDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 
@@ -255,11 +243,8 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
 
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:
-                hammerRew = 1000 * (
-                    self.maxHammerDist - hammerDist - screwDist
-                ) + c1 * (
-                    np.exp(-((hammerDist + screwDist) ** 2) / c2)
-                    + np.exp(-((hammerDist + screwDist) ** 2) / c3)
+                hammerRew = 1000 * (self.maxHammerDist - hammerDist - screwDist) + c1 * (
+                    np.exp(-((hammerDist + screwDist) ** 2) / c2) + np.exp(-((hammerDist + screwDist) ** 2) / c3)
                 )
                 hammerRew = max(hammerRew, 0)
             else:

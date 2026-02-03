@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerHandlePressEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "handle-press-v3"
+    env_name = "handle-press-v3"
 
     TARGET_RADIUS: float = 0.02
 
@@ -38,9 +38,7 @@ class SawyerHandlePressEnvV3(SawyerXYZEnv):
         self.obj_init_pos = self.init_config["obj_init_pos"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
@@ -101,9 +99,7 @@ class SawyerHandlePressEnvV3(SawyerXYZEnv):
         self.model.body("box").pos = self.obj_init_pos
         self._set_obj_xyz(np.array(-0.001))
         self._target_pos = self._get_site_pos("goalPress")
-        self.maxDist = np.abs(
-            self.data.site("handleStart").xpos[-1] - self._target_pos[-1]
-        )
+        self.maxDist = np.abs(self.data.site("handleStart").xpos[-1] - self._target_pos[-1])
         self.target_reward = 1000 * self.maxDist + 1000 * 2
         self._handle_init_pos = self._get_pos_objects()
 
@@ -112,9 +108,7 @@ class SawyerHandlePressEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             del actions
             obj = self._get_pos_objects()

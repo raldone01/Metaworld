@@ -2,14 +2,14 @@ import concurrent.futures
 import os
 
 import numpy as np
-import numpy.testing as npt
+import numpy.testing as nptest
 
 from metaworld.agent import RandomMetaworldAgent, run_agent_episode
 
 
 def _run_episode(seed: int, env_name: str) -> dict:
     agent = RandomMetaworldAgent(seed=seed)
-    record_keys = ["observations"]
+    record_keys = set(["observations"])
     ep_results = run_agent_episode(
         env_name=env_name,
         seed=seed,
@@ -22,11 +22,9 @@ def _run_episode(seed: int, env_name: str) -> dict:
 
 
 def test_env_determinism_across_threads():
-    """
-    Test that running multiple episodes in parallel threads with the same seeds
+    """Test that running multiple episodes in parallel threads with the same seeds
     produces identical observations, ensuring thread safety and determinism.
     """
-
     max_workers = os.cpu_count() or 1
 
     num_parallel_eps = 55
@@ -54,7 +52,7 @@ def test_env_determinism_across_threads():
 
         try:
             for i in range(1, len(observations)):
-                npt.assert_array_equal(
+                nptest.assert_array_equal(
                     observations[0],
                     observations[i],
                     err_msg=f"Mismatch in seed {seed} between runs 0 and {i}",

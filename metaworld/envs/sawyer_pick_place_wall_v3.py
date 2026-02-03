@@ -29,7 +29,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
           reach-push-pick-place-wall.
     """
 
-    ENV_NAME: str = "pick-place-wall-v3"
+    env_name = "pick-place-wall-v3"
 
     def __init__(
         self,
@@ -87,11 +87,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
         assert self.obj_init_pos is not None
-        grasp_success = float(
-            self.touching_main_object
-            and (tcp_open > 0)
-            and (obj[2] - 0.02 > self.obj_init_pos[2])
-        )
+        grasp_success = float(self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
         info = {
             "success": success,
             "near_object": near_object,
@@ -108,9 +104,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
         return self.data.geom("objGeom").xpos
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return Rotation.from_matrix(
-            self.data.geom("objGeom").xmat.reshape(3, 3)
-        ).as_quat()
+        return Rotation.from_matrix(self.data.geom("objGeom").xmat.reshape(3, 3)).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
@@ -143,15 +137,10 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
 
         self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -181,9 +170,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
 
             in_place_scaling = np.array([1.0, 1.0, 3.0])
             obj_to_midpoint = float(np.linalg.norm((obj - midpoint) * in_place_scaling))
-            obj_to_midpoint_init = float(
-                np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling)
-            )
+            obj_to_midpoint_init = float(np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling))
 
             obj_to_target = float(np.linalg.norm(obj - target))
             obj_to_target_init = float(np.linalg.norm(self.obj_init_pos - target))
@@ -212,21 +199,13 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
                 high_density=False,
             )
 
-            in_place_and_object_grasped = reward_utils.hamacher_product(
-                object_grasped, in_place_part1
-            )
+            in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place_part1)
             reward = in_place_and_object_grasped
 
-            if (
-                tcp_to_obj < 0.02
-                and (tcp_opened > 0)
-                and (obj[2] - 0.015 > self.obj_init_pos[2])
-            ):
+            if tcp_to_obj < 0.02 and (tcp_opened > 0) and (obj[2] - 0.015 > self.obj_init_pos[2]):
                 reward = in_place_and_object_grasped + 1.0 + 4.0 * in_place_part1
                 if obj[1] > 0.75:
-                    reward = (
-                        in_place_and_object_grasped + 1.0 + 4.0 + 3.0 * in_place_part2
-                    )
+                    reward = in_place_and_object_grasped + 1.0 + 4.0 + 3.0 * in_place_part2
 
             if obj_to_target < _TARGET_RADIUS:
                 reward = 10.0
@@ -275,11 +254,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
 
             self.pickCompleted = pickCompletionCriteria()
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 

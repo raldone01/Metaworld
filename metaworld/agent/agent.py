@@ -20,7 +20,7 @@ class MetaworldAgent(ABC):
         Args:
             env (gym.Env): The environment instance. No modifications should be made to it.
                            It is provided only for reference (e.g., to access the action space
-                           or to get the environment name via `env.unwrapped.ENV_NAME`).
+                           or to get the environment name via `env.unwrapped.env_name`).
             obs (np.ndarray): The current observation from the environment.
             info (dict): Additional information from the environment.
             env_name (str): The name of the environment/task.
@@ -57,7 +57,7 @@ class ExpertPolicyMetaworldAgent(MetaworldAgent):
         self.policy_task_name: str | None = None
 
     def get_action(self, env: gym.Env, obs: npt.NDArray[np.float64], info: dict) -> npt.NDArray[np.float32]:
-        env_name = cast(SawyerXYZEnv, env.unwrapped).ENV_NAME
+        env_name = cast(SawyerXYZEnv, env.unwrapped).env_name
         if self.policy is None or self.policy_task_name != env_name:
             self.policy_task_name = env_name
             policy_cls = ENV_POLICY_MAP[env_name]

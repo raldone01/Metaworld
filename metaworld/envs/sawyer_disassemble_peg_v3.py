@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "disassemble-v3"
+    env_name = "disassemble-v3"
 
     WRENCH_HANDLE_LENGTH: float = 0.02
 
@@ -85,9 +85,7 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `_target_site_config`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `_target_site_config`."
         return [("pegTop", self._target_pos)]
 
     def _get_id_main_object(self) -> int:
@@ -129,10 +127,7 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -149,9 +144,7 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
         return max(1.0 - error / 0.4, 0.0)
 
     @staticmethod
-    def _reward_pos(
-        wrench_center: npt.NDArray[Any], target_pos: npt.NDArray[Any]
-    ) -> float:
+    def _reward_pos(wrench_center: npt.NDArray[Any], target_pos: npt.NDArray[Any]) -> float:
         pos_error = target_pos + np.array([0.0, 0.0, 0.1]) - wrench_center
 
         a = 0.1  # Relative importance of just *trying* to lift the wrench
@@ -169,9 +162,7 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, bool]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             hand = obs[:3]
             wrench = obs[4:7]
@@ -197,9 +188,7 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
                 xz_thresh=0.01,
                 high_density=True,
             )
-            reward_in_place = SawyerNutDisassembleEnvV3._reward_pos(
-                wrench_center, self._target_pos
-            )
+            reward_in_place = SawyerNutDisassembleEnvV3._reward_pos(wrench_center, self._target_pos)
 
             reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
             # Override reward on success
@@ -248,11 +237,7 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
             else:
                 self.pickCompleted = False
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
 
             hScale = 100
             if self.pickCompleted and not objDropped:
@@ -278,10 +263,7 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
 
             peg_pos = self.model.body("peg").pos
             nut_pos = self.get_body_com("RoundNut")
-            if (
-                abs(nut_pos[0] - peg_pos[0]) > 0.05
-                or abs(nut_pos[1] - peg_pos[1]) > 0.05
-            ):
+            if abs(nut_pos[0] - peg_pos[0]) > 0.05 or abs(nut_pos[1] - peg_pos[1]) > 0.05:
                 placingDist = 0  # type: ignore
                 reachRew = 0  # type: ignore
                 reachDist = 0  # type: ignore

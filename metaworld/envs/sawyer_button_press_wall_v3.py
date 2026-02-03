@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerButtonPressWallEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "button-press-wall-v3"
+    env_name = "button-press-wall-v3"
 
     def __init__(
         self,
@@ -35,9 +35,7 @@ class SawyerButtonPressWallEnvV3(SawyerXYZEnv):
         goal_low = hand_low
         goal_high = hand_high
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
 
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
@@ -108,22 +106,16 @@ class SawyerButtonPressWallEnvV3(SawyerXYZEnv):
         self._set_obj_xyz(np.array(0))
         self._target_pos = self._get_site_pos("hole")
 
-        self._obj_to_target_init = abs(
-            self._target_pos[1] - self._get_site_pos("buttonStart")[1]
-        )
+        self._obj_to_target_init = abs(self._target_pos[1] - self._get_site_pos("buttonStart")[1])
 
-        self.maxDist = np.abs(
-            self._get_site_pos("buttonStart")[2] - self._target_pos[2]
-        )
+        self.maxDist = np.abs(self._get_site_pos("buttonStart")[2] - self._target_pos[2])
 
         return self._get_obs()
 
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         del action
         if self.reward_function_version == "v2":
             obj = obs[4:7]

@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "coffee-button-v3"
+    env_name = "coffee-button-v3"
 
     def __init__(
         self,
@@ -40,9 +40,7 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
@@ -81,9 +79,7 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `_target_site_config`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `_target_site_config`."
         return [("coffee_goal", self._target_pos)]
 
     def _get_id_main_object(self):
@@ -115,18 +111,14 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
         self._target_pos = pos_button + np.array([0.0, self.max_dist, 0.0])
 
         assert self._target_pos is not None
-        self.maxDist = np.abs(
-            self._get_site_pos("buttonStart")[1] - self._target_pos[1]
-        )
+        self.maxDist = np.abs(self._get_site_pos("buttonStart")[1] - self._target_pos[1])
 
         return self._get_obs()
 
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             del action
             obj = obs[4:7]

@@ -14,8 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
-    """
-    Motivation for V3:
+    """Motivation for V3:
         V1 was difficult to solve because the observation didn't say where
         to insert the peg (the hole's location). Furthermore, the hole object
         could be initialized in such a way that it severely restrained the
@@ -31,7 +30,7 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
             the hole's position, as opposed to hand_low and hand_high
     """
 
-    ENV_NAME: str = "peg-insert-side-v3"
+    env_name = "peg-insert-side-v3"
 
     TARGET_RADIUS: float = 0.07
 
@@ -99,11 +98,7 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
             ip_orig,
         ) = self.compute_reward(action, obs)
         assert self.obj_init_pos is not None
-        grasp_success = float(
-            tcp_to_obj < 0.02
-            and (tcp_open > 0)
-            and (obj[2] - 0.01 > self.obj_init_pos[2])
-        )
+        grasp_success = float(tcp_to_obj < 0.02 and (tcp_open > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]))
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
 
@@ -143,10 +138,7 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
 
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -168,9 +160,7 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
             #  force agent to pick up object then insert
             obj_to_target = float(np.linalg.norm((obj_head - target) * scale))
 
-            in_place_margin = float(
-                np.linalg.norm((self.peg_head_pos_init - target) * scale)
-            )
+            in_place_margin = float(np.linalg.norm((self.peg_head_pos_init - target) * scale))
             in_place = reward_utils.tolerance(
                 obj_to_target,
                 bounds=(0, self.TARGET_RADIUS),
@@ -189,9 +179,7 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
             collision_box_bottom_2 = reward_utils.rect_prism_tolerance(
                 curr=obj_head, one=tlc_col_box_2, zero=brc_col_box_2
             )
-            collision_boxes = reward_utils.hamacher_product(
-                collision_box_bottom_2, collision_box_bottom_1
-            )
+            collision_boxes = reward_utils.hamacher_product(collision_box_bottom_2, collision_box_bottom_1)
             in_place = reward_utils.hamacher_product(in_place, collision_boxes)
 
             pad_success_margin = 0.03
@@ -208,22 +196,12 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
                 xz_thresh=x_z_margin,
                 high_density=True,
             )
-            if (
-                tcp_to_obj < 0.08
-                and (tcp_opened > 0)
-                and (obj[2] - 0.01 > self.obj_init_pos[2])
-            ):
+            if tcp_to_obj < 0.08 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
                 object_grasped = 1.0
-            in_place_and_object_grasped = reward_utils.hamacher_product(
-                object_grasped, in_place
-            )
+            in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place)
             reward = in_place_and_object_grasped
 
-            if (
-                tcp_to_obj < 0.08
-                and (tcp_opened > 0)
-                and (obj[2] - 0.01 > self.obj_init_pos[2])
-            ):
+            if tcp_to_obj < 0.08 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
                 reward += 1.0 + 5 * in_place
 
             if obj_to_target <= 0.07:
@@ -273,11 +251,7 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
             tolerance = 0.01
             self.pickCompleted = objPos[2] >= (heightTarget - tolerance)
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 
@@ -293,11 +267,7 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
             c2 = 0.01
             c3 = 0.001
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
 
             cond = self.pickCompleted and (reachDist < 0.1) and not (objDropped)
 
@@ -308,8 +278,7 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
                     )
                 else:
                     placeRew = 1000 * (self.maxPlacingDist - placingDistHead) + c1 * (
-                        np.exp(-(placingDistHead**2) / c2)
-                        + np.exp(-(placingDistHead**2) / c3)
+                        np.exp(-(placingDistHead**2) / c2) + np.exp(-(placingDistHead**2) / c3)
                     )
                 placeRew = max(placeRew, 0)
                 placeRew, placingDist = placeRew, placingDist

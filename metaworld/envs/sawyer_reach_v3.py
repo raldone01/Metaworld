@@ -28,7 +28,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
 
-    ENV_NAME: str = "reach-v3"
+    env_name = "reach-v3"
 
     def __init__(
         self,
@@ -103,9 +103,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
         adjusted_pos = orig_init_pos[:2] + diff
         # The convention we follow is that body_com[2] is always 0,
         # and geom_pos[2] is the object height
-        return np.array(
-            [adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]]
-        )
+        return np.array([adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]])
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
@@ -128,9 +126,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def compute_reward(
-        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
-    ) -> tuple[float, float, float]:
+    def compute_reward(self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]) -> tuple[float, float, float]:
         assert self._target_pos is not None
         if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
@@ -171,4 +167,4 @@ class SawyerReachEnvV3(SawyerXYZEnv):
             )
             reachRew = max(reachRew, 0)
             reward = reachRew
-            return float(reward), float(reachDist), float(0.0)
+            return float(reward), float(reachDist), 0.0

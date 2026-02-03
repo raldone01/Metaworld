@@ -6,7 +6,7 @@ from metaworld.env_dict import MT_BENCHMARKS_TRAIN_ENV_NAMES
 
 
 @pytest.mark.parametrize("mtx_benchmark_name", MT_BENCHMARKS_TRAIN_ENV_NAMES.keys())
-def test_env_one_hot_wrapper(mtx_benchmark_name):
+def test_env_one_hot_wrapper(mtx_benchmark_name: str):
     """Test that the one-hot wrapper correctly encodes task information."""
     envs = gym.make_vec(f"Meta-World/{mtx_benchmark_name}", use_one_hot=True)
     obs, info = envs.reset()

@@ -28,7 +28,7 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
             This ensures that the target point is above the table.
     """
 
-    ENV_NAME: str = "lever-pull-v3"
+    env_name = "lever-pull-v3"
 
     LEVER_RADIUS = 0.2
 
@@ -53,9 +53,7 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
         goal_low = hand_low
         goal_high = hand_high
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
@@ -104,15 +102,9 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self.obj_init_pos = self._get_state_rand_vec()
-        self.model.body_pos[
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "lever")
-        ] = self.obj_init_pos
-        self._lever_pos_init = self.obj_init_pos + np.array(
-            [0.12, -self.LEVER_RADIUS, 0.25]
-        )
-        self._target_pos = self.obj_init_pos + np.array(
-            [0.12, 0.0, 0.25 + self.LEVER_RADIUS]
-        )
+        self.model.body_pos[mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "lever")] = self.obj_init_pos
+        self._lever_pos_init = self.obj_init_pos + np.array([0.12, -self.LEVER_RADIUS, 0.25])
+        self._target_pos = self.obj_init_pos + np.array([0.12, 0.0, 0.25 + self.LEVER_RADIUS])
         self.model.site("goal").pos = self._target_pos
 
         assert self._target_pos is not None and self.obj_init_pos is not None
@@ -136,9 +128,7 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
             offset = np.array([0.0, 0.055, 0.07])
 
             shoulder_to_lever = (gripper + offset - lever) * scale
-            shoulder_to_lever_init = (
-                self.init_tcp + offset - self._lever_pos_init
-            ) * scale
+            shoulder_to_lever_init = (self.init_tcp + offset - self._lever_pos_init) * scale
 
             # This `ready_to_lift` reward should be a *hint* for the agent, not an
             # end in itself. Make sure to devalue it compared to the value of

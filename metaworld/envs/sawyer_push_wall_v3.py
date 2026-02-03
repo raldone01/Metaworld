@@ -31,7 +31,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
 
-    ENV_NAME: str = "push-wall-v3"
+    env_name = "push-wall-v3"
 
     OBJ_RADIUS: float = 0.02
 
@@ -91,11 +91,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
         assert self.obj_init_pos is not None
-        grasp_success = float(
-            self.touching_main_object
-            and (tcp_open > 0)
-            and (obj[2] - 0.02 > self.obj_init_pos[2])
-        )
+        grasp_success = float(self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
         info = {
             "success": success,
             "near_object": near_object,
@@ -117,9 +113,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
     def adjust_initObjPos(self, orig_init_pos: npt.NDArray[Any]) -> npt.NDArray[Any]:
         diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
-        return np.array(
-            [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
-        )
+        return np.array([adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]])
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
@@ -142,15 +136,10 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
 
         self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -175,9 +164,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
 
             in_place_scaling = np.array([3.0, 1.0, 1.0])
             obj_to_midpoint = float(np.linalg.norm((obj - midpoint) * in_place_scaling))
-            obj_to_midpoint_init = float(
-                np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling)
-            )
+            obj_to_midpoint_init = float(np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling))
 
             obj_to_target = float(np.linalg.norm(obj - target))
             obj_to_target_init = float(np.linalg.norm(self.obj_init_pos - target))

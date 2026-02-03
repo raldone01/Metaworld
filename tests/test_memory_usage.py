@@ -8,7 +8,7 @@ from metaworld.agent import RandomMetaworldAgent, run_agent_episode_with_env
 from metaworld.env_dict import ENV_CLASS_MAP
 
 
-def _build_env_and_run_eps(env_name):
+def _build_env_and_run_eps(env_name: str) -> None:
     seed = 42
     agent = RandomMetaworldAgent(seed=seed)
     max_episode_steps = 150
@@ -30,14 +30,14 @@ def _build_env_and_run_eps(env_name):
     env.close()
 
 
-def _profile_env_memory(env_name):
+def _profile_env_memory(env_name: str) -> list[float]:
     target = (_build_env_and_run_eps, [env_name], {})
     memory_usage = memory_profiler.memory_usage(target)
     return memory_usage
 
 
 @pytest.mark.parametrize("env_name", ENV_CLASS_MAP.keys())
-def test_env_memory_profiler(env_name):
+def test_env_memory_profiler(env_name: str) -> None:
     # Create a separate process to be able to accurately measure memory usage
     with ProcessPoolExecutor(max_workers=1) as executor:
         future = executor.submit(_profile_env_memory, env_name)

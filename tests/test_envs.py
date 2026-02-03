@@ -5,7 +5,7 @@ from metaworld.env_dict import ENV_NAMES
 
 
 @pytest.mark.parametrize("env_name", ENV_NAMES)
-def test_env_seeds_produce_unique_observations(env_name):
+def test_env_seeds_produce_unique_observations(env_name: str):
     agent = RandomMetaworldAgent(seed=42)
 
     # The initial observation is sufficient to verify different seeds produce different results

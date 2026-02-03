@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerPlateSlideSideEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "plate-slide-side-v3"
+    env_name = "plate-slide-side-v3"
 
     def __init__(
         self,
@@ -132,9 +132,7 @@ class SawyerPlateSlideSideEnvV3(SawyerXYZEnv):
             )
 
             tcp_to_obj = float(np.linalg.norm(tcp - obj))
-            obj_grasped_margin = float(
-                np.linalg.norm(self.init_tcp - self.obj_init_pos)
-            )
+            obj_grasped_margin = float(np.linalg.norm(self.init_tcp - self.obj_init_pos))
             object_grasped = reward_utils.tolerance(
                 tcp_to_obj,
                 bounds=(0, _TARGET_RADIUS),

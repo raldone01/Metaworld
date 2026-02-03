@@ -41,7 +41,7 @@ class SawyerMocapBase(MujocoEnv, ABC):
 
     @property
     @abstractmethod
-    def ENV_NAME(self) -> str:
+    def env_name(self) -> str:
         """The name of the environment."""
         pass
 
@@ -101,9 +101,7 @@ class SawyerMocapBase(MujocoEnv, ABC):
         qvel = np.copy(self.data.qvel)
         return copy.deepcopy((qpos, qvel))
 
-    def set_env_state(
-        self, state: tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]
-    ) -> None:
+    def set_env_state(self, state: tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]) -> None:
         """Set the environment state.
 
         Args:
@@ -144,9 +142,7 @@ class SawyerMocapBase(MujocoEnv, ABC):
         if self.model.nmocap > 0 and self.model.eq_data is not None:
             for i in range(self.model.eq_data.shape[0]):
                 if self.model.eq_type[i] == mujoco.mjtEq.mjEQ_WELD:  # ty:ignore[unresolved-attribute]
-                    self.model.eq_data[i] = np.array(
-                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 5.0]
-                    )
+                    self.model.eq_data[i] = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 5.0])
 
 
 class SawyerXYZEnv(SawyerMocapBase, EzPickle):
@@ -372,28 +368,18 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         leftpad_object_contacts = [
             x
             for x in self.data.contact
-            if (
-                leftpad_geom_id in (x.geom1, x.geom2)
-                and object_geom_id in (x.geom1, x.geom2)
-            )
+            if (leftpad_geom_id in (x.geom1, x.geom2) and object_geom_id in (x.geom1, x.geom2))
         ]
 
         rightpad_object_contacts = [
             x
             for x in self.data.contact
-            if (
-                rightpad_geom_id in (x.geom1, x.geom2)
-                and object_geom_id in (x.geom1, x.geom2)
-            )
+            if (rightpad_geom_id in (x.geom1, x.geom2) and object_geom_id in (x.geom1, x.geom2))
         ]
 
-        leftpad_object_contact_force = sum(
-            self.data.efc_force[x.efc_address] for x in leftpad_object_contacts
-        )
+        leftpad_object_contact_force = sum(self.data.efc_force[x.efc_address] for x in leftpad_object_contacts)
 
-        rightpad_object_contact_force = sum(
-            self.data.efc_force[x.efc_address] for x in rightpad_object_contacts
-        )
+        rightpad_object_contact_force = sum(self.data.efc_force[x.efc_address] for x in rightpad_object_contacts)
 
         return 0 < leftpad_object_contact_force and 0 < rightpad_object_contact_force
 
@@ -506,9 +492,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             goal_low = np.zeros(3)
             goal_high = np.zeros(3)
         else:
-            assert self.goal_space is not None, (
-                "The goal space must be defined to use full observability"
-            )
+            assert self.goal_space is not None, "The goal space must be defined to use full observability"
             goal_low = self.goal_space.low
             goal_high = self.goal_space.high
         gripper_low = -1.0
@@ -637,7 +621,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         info.update(
             {
                 "seed": self.current_seed,
-                "env_name": self.ENV_NAME,
+                "env_name": self.env_name,
                 "goal_observable": self._goal_observable,
             }
         )
@@ -700,9 +684,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             the reward value
 
         """
-        assert self.obj_init_pos is not None, (
-            "`obj_init_pos` must be initialized before calling this function."
-        )
+        assert self.obj_init_pos is not None, "`obj_init_pos` must be initialized before calling this function."
 
         if high_density and medium_density:
             raise ValueError("Can only be either high_density or medium_density")
@@ -779,9 +761,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         )
 
         # MARK: Closed-extent gripper information for caging reward-------------
-        gripper_closed = (
-            min(max(0, action[-1]), desired_gripper_effort) / desired_gripper_effort
-        )
+        gripper_closed = min(max(0, action[-1]), desired_gripper_effort) / desired_gripper_effort
 
         # MARK: Combine components----------------------------------------------
         caging = reward_utils.hamacher_product(caging_y, float(caging_xz))

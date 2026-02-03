@@ -24,7 +24,7 @@ class SawyerWindowOpenEnvV3(SawyerXYZEnv):
         - (6/15/20) Increased step limit from 150 to 200
     """
 
-    ENV_NAME: str = "window-open-v3"
+    env_name = "window-open-v3"
 
     TARGET_RADIUS: float = 0.05
 
@@ -49,9 +49,7 @@ class SawyerWindowOpenEnvV3(SawyerXYZEnv):
         goal_low = hand_low
         goal_high = hand_high
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         self.maxPullDist = 0.2
@@ -138,9 +136,7 @@ class SawyerWindowOpenEnvV3(SawyerXYZEnv):
 
             handle_radius = 0.02
             tcp_to_obj = float(np.linalg.norm(obj - tcp))
-            tcp_to_obj_init = float(
-                np.linalg.norm(self.window_handle_pos_init - self.init_tcp)
-            )
+            tcp_to_obj_init = float(np.linalg.norm(self.window_handle_pos_init - self.init_tcp))
             reach = reward_utils.tolerance(
                 tcp_to_obj,
                 bounds=(0, handle_radius),

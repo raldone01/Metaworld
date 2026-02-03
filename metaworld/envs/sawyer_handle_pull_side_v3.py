@@ -13,7 +13,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerHandlePullSideEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "handle-pull-side-v3"
+    env_name = "handle-pull-side-v3"
 
     def __init__(
         self,
@@ -37,9 +37,7 @@ class SawyerHandlePullSideEnvV3(SawyerXYZEnv):
         goal_low = hand_low
         goal_high = hand_high
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
@@ -69,9 +67,7 @@ class SawyerHandlePullSideEnvV3(SawyerXYZEnv):
         info = {
             "success": float(obj_to_target <= 0.08),
             "near_object": float(tcp_to_obj <= 0.05),
-            "grasp_success": float(
-                (tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])
-            ),
+            "grasp_success": float((tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])),
             "grasp_reward": grasp_reward,
             "in_place_reward": in_place_reward,
             "obj_to_target": obj_to_target,
@@ -104,9 +100,7 @@ class SawyerHandlePullSideEnvV3(SawyerXYZEnv):
         self.model.body("box").pos = self.obj_init_pos
         self._set_obj_xyz(np.array(-0.1))
         self._target_pos = self._get_site_pos("goalPull")
-        self.maxDist = np.abs(
-            self.data.site("handleStart").xpos[-1] - self._target_pos[-1]
-        )
+        self.maxDist = np.abs(self.data.site("handleStart").xpos[-1] - self._target_pos[-1])
         self.target_reward = 1000 * self.maxDist + 1000 * 2
         self.obj_init_pos = self._get_pos_objects()
 
@@ -152,11 +146,7 @@ class SawyerHandlePullSideEnvV3(SawyerXYZEnv):
             tcp_opened = obs[3]
             tcp_to_obj = float(np.linalg.norm(obj - self.tcp_center))
 
-            if (
-                tcp_to_obj < 0.035
-                and tcp_opened > 0
-                and obj[2] - 0.01 > self.obj_init_pos[2]
-            ):
+            if tcp_to_obj < 0.035 and tcp_opened > 0 and obj[2] - 0.01 > self.obj_init_pos[2]:
                 reward += 1.0 + 5.0 * in_place
             if target_to_obj < self.TARGET_RADIUS:
                 reward = 10.0

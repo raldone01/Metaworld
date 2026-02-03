@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerCoffeePullEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "coffee-pull-v3"
+    env_name = "coffee-pull-v3"
 
     def __init__(
         self,
@@ -83,9 +83,7 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `_target_site_config`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `_target_site_config`."
         return [("mug_goal", self._target_pos)]
 
     def _get_id_main_object(self) -> int:
@@ -121,18 +119,14 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
         self._target_pos = pos_mug_goal
         self.model.site("mug_goal").pos = self._target_pos
 
-        self.maxPullDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPullDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 
         return self._get_obs()
 
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             obj = obs[4:7]
             target = self._target_pos.copy()
@@ -197,9 +191,7 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
             reachDist = np.linalg.norm(fingerCOM - objPos)
             pullDist = np.linalg.norm(objPos[:2] - goal[:2])
             reachRew = -reachDist
-            reachDistxy = np.linalg.norm(
-                np.concatenate((objPos[:-1], np.array([self.init_tcp[-1]])))
-            )
+            reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], np.array([self.init_tcp[-1]]))))
 
             if reachDistxy < 0.05:  # 0.02
                 reachRew = -reachDist + 0.1

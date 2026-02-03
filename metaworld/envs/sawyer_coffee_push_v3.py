@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerCoffeePushEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "coffee-push-v3"
+    env_name = "coffee-push-v3"
 
     def __init__(
         self,
@@ -83,9 +83,7 @@ class SawyerCoffeePushEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `_target_site_config`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `_target_site_config`."
         return [("coffee_goal", self._target_pos)]
 
     def _get_id_main_object(self) -> int:
@@ -122,18 +120,14 @@ class SawyerCoffeePushEnvV3(SawyerXYZEnv):
         self._target_pos = pos_mug_goal
         self.model.site("mug_goal").pos = self._target_pos
 
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 
         return self._get_obs()
 
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert self._target_pos is not None, (
-            "`reset_model()` must be called before `compute_reward()`."
-        )
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             obj = obs[4:7]
             target = self._target_pos.copy()

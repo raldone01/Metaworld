@@ -15,7 +15,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "shelf-place-v3"
+    env_name = "shelf-place-v3"
 
     def __init__(
         self,
@@ -70,11 +70,7 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
         assert self.obj_init_pos is not None
-        grasp_success = float(
-            self.touching_main_object
-            and (tcp_open > 0)
-            and (obj[2] - 0.02 > self.obj_init_pos[2])
-        )
+        grasp_success = float(self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
 
         info = {
             "success": success,
@@ -113,9 +109,7 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
             goal_pos = self._get_state_rand_vec()
         base_shelf_pos = goal_pos - np.array([0, 0, 0, 0, 0, 0.3])
-        self.obj_init_pos = np.concatenate(
-            (base_shelf_pos[:2], [self.obj_init_pos[-1]])
-        )
+        self.obj_init_pos = np.concatenate((base_shelf_pos[:2], [self.obj_init_pos[-1]]))
 
         self.model.body("shelf").pos = base_shelf_pos[-3:]
         mujoco.mj_forward(self.model, self.data)
@@ -131,10 +125,7 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -180,24 +171,14 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
                 and ((target[1] - 3 * _TARGET_RADIUS) < obj[1] < target[1])
             ):
                 z_scaling = (0.24 - obj[2]) / 0.24
-                y_scaling = (obj[1] - (target[1] - 3 * _TARGET_RADIUS)) / (
-                    3 * _TARGET_RADIUS
-                )
+                y_scaling = (obj[1] - (target[1] - 3 * _TARGET_RADIUS)) / (3 * _TARGET_RADIUS)
                 bound_loss = reward_utils.hamacher_product(y_scaling, z_scaling)
                 in_place = np.clip(in_place - bound_loss, 0.0, 1.0)
 
-            if (
-                (0.0 < obj[2] < 0.24)
-                and (target[0] - 0.15 < obj[0] < target[0] + 0.15)
-                and (obj[1] > target[1])
-            ):
+            if (0.0 < obj[2] < 0.24) and (target[0] - 0.15 < obj[0] < target[0] + 0.15) and (obj[1] > target[1]):
                 in_place = 0.0
 
-            if (
-                tcp_to_obj < 0.025
-                and (tcp_opened > 0)
-                and (obj[2] - 0.01 > self.obj_init_pos[2])
-            ):
+            if tcp_to_obj < 0.025 and (tcp_opened > 0) and (obj[2] - 0.01 > self.obj_init_pos[2]):
                 reward += 1.0 + 5.0 * in_place
 
             if obj_to_target < _TARGET_RADIUS:
@@ -242,11 +223,7 @@ class SawyerShelfPlaceEnvV3(SawyerXYZEnv):
             tolerance = 0.01
             self.pickCompleted = objPos[2] >= (heightTarget - tolerance)
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 

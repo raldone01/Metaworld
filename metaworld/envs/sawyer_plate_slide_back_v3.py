@@ -14,7 +14,7 @@ from metaworld.utils import reward_utils
 
 
 class SawyerPlateSlideBackEnvV3(SawyerXYZEnv):
-    ENV_NAME: str = "plate-slide-back-v3"
+    env_name = "plate-slide-back-v3"
 
     def __init__(
         self,
@@ -107,9 +107,7 @@ class SawyerPlateSlideBackEnvV3(SawyerXYZEnv):
 
         self.model.site("goal").pos = self._target_pos
 
-        self.maxDist = np.linalg.norm(
-            self.data.geom("puck").xpos[:-1] - self._target_pos[:-1]
-        )
+        self.maxDist = np.linalg.norm(self.data.geom("puck").xpos[:-1] - self._target_pos[:-1])
 
         return self._get_obs()
 
@@ -134,9 +132,7 @@ class SawyerPlateSlideBackEnvV3(SawyerXYZEnv):
             )
 
             tcp_to_obj = float(np.linalg.norm(tcp - obj))
-            obj_grasped_margin = float(
-                np.linalg.norm(self.init_tcp - self.obj_init_pos)
-            )
+            obj_grasped_margin = float(np.linalg.norm(self.init_tcp - self.obj_init_pos))
             object_grasped = reward_utils.tolerance(
                 tcp_to_obj,
                 bounds=(0, _TARGET_RADIUS),
