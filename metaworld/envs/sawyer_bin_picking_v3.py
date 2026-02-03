@@ -153,9 +153,9 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[Any]
     ) -> tuple[float, bool, bool, float, float, float]:
-        assert (
-            self.obj_init_pos is not None and self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self.obj_init_pos is not None and self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             hand = obs[:3]
             obj = obs[4:7]
@@ -235,9 +235,10 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -313,8 +314,7 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
                     abs(objPos[0] - placingGoal[0]) < 0.05
                     and abs(objPos[1] - placingGoal[1]) < 0.05
                 ):
-                    placeRew, placingDist = [-200 *
-                                             action[-1] + placeRew, placingDist]
+                    placeRew, placingDist = [-200 * action[-1] + placeRew, placingDist]
                 else:
                     placeRew, placingDist = [placeRew, placingDist]
             else:

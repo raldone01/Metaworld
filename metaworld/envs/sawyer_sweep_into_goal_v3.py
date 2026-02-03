@@ -44,8 +44,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -101,8 +100,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
         assert self.obj_init_pos is not None
-        self.obj_init_pos = np.concatenate(
-            [goal_pos[:2], [self.obj_init_pos[-1]]])
+        self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
 
         self._set_obj_xyz(self.obj_init_pos)
         self.model.site("goal").pos = self._target_pos
@@ -171,8 +169,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         assert left_caging >= 0 and left_caging <= 1
 
         y_caging = reward_utils.hamacher_product(right_caging, left_caging)
-        y_gripping = reward_utils.hamacher_product(
-            right_gripping, left_gripping)
+        y_gripping = reward_utils.hamacher_product(right_gripping, left_gripping)
 
         assert y_caging >= 0 and y_caging <= 1
 
@@ -180,13 +177,11 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         obj_position_x_z = np.copy(obj_pos) + np.array([0.0, -obj_pos[1], 0.0])
         tcp_obj_norm_x_z = np.linalg.norm(tcp_xz - obj_position_x_z, ord=2)
         assert self.obj_init_pos is not None
-        init_obj_x_z = self.obj_init_pos + \
-            np.array([0.0, -self.obj_init_pos[1], 0.0])
+        init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
 
         tcp_obj_x_z_margin = (
-            np.linalg.norm(init_obj_x_z - init_tcp_x_z,
-                           ord=2) - x_z_success_margin
+            np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         )
         x_z_caging = reward_utils.tolerance(
             float(tcp_obj_norm_x_z),
@@ -221,8 +216,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
             tcp = self.tcp_center
             obj = obs[4:7]
             tcp_opened = obs[3]
-            target = np.array(
-                [self._target_pos[0], self._target_pos[1], obj[2]])
+            target = np.array([self._target_pos[0], self._target_pos[1], obj[2]])
 
             obj_to_target = float(np.linalg.norm(obj - target))
             tcp_to_obj = float(np.linalg.norm(obj - tcp))
@@ -235,8 +229,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
                 sigmoid="long_tail",
             )
 
-            object_grasped = self._gripper_caging_reward(
-                action, obj, self.OBJ_RADIUS)
+            object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
             in_place_and_object_grasped = reward_utils.hamacher_product(
                 object_grasped, in_place
             )
@@ -258,9 +251,10 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
 
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             goal = self._target_pos
@@ -276,8 +270,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
             self.reachCompleted = reachDist < 0.05
             assert objPos is not None and self.obj_init_pos is not None
             if (
-                objPos[-1] < self.obj_init_pos[-1] -
-                    0.05 and 0.4 < objPos[1] < 1.0
+                objPos[-1] < self.obj_init_pos[-1] - 0.05 and 0.4 < objPos[1] < 1.0
             ):  # ignore: type
                 reachRew = 0.0  # type: ignore
                 reachDist = 0.0  # type: ignore

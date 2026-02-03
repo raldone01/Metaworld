@@ -1,26 +1,28 @@
-import memory_profiler
-import pytest
-import gymnasium as gym
 from concurrent.futures import ProcessPoolExecutor
 
-from metaworld.env_dict import ENV_CLASS_MAP
+import gymnasium as gym
+import memory_profiler
+import pytest
 
-from tests.gym.helpers import run_agent_episode_in_env, RandomMetaworldAgent
+from metaworld.agent import RandomMetaworldAgent, run_agent_episode_with_env
+from metaworld.env_dict import ENV_CLASS_MAP
 
 
 def _build_env_and_run_eps(env_name):
     seed = 42
     agent = RandomMetaworldAgent(seed=seed)
     max_episode_steps = 150
-    env = gym.make("Meta-World/MT1",
-                   env_name=env_name,
-                   seed=seed,
-                   num_tasks_per_env=1,
-                   max_episode_steps=max_episode_steps,)
+    env = gym.make(
+        "Meta-World/MT1",
+        env_name=env_name,
+        seed=seed,
+        num_tasks_per_env=1,
+        max_episode_steps=max_episode_steps,
+    )
 
     episodes = 10
     for _ in range(episodes):
-        run_agent_episode_in_env(
+        run_agent_episode_with_env(
             env=env,
             agent=agent,
             max_episode_steps=max_episode_steps,
@@ -45,4 +47,6 @@ def test_env_memory_profiler(env_name):
     env_max_memory_usage_threshold = 300
     print(f"Memory usage for env {env_name}: {memory_usage}")
     env_max_memory_usage = max(memory_usage)
-    assert env_max_memory_usage < env_max_memory_usage_threshold, f"Env {env_name} exceeded max memory usage of {env_max_memory_usage_threshold}: {env_max_memory_usage}MB"
+    assert env_max_memory_usage < env_max_memory_usage_threshold, (
+        f"Env {env_name} exceeded max memory usage of {env_max_memory_usage_threshold}: {env_max_memory_usage}MB"
+    )

@@ -27,6 +27,7 @@ class SawyerPushEnvV3(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
+
     ENV_NAME: str = "push-v3"
 
     TARGET_RADIUS: float = 0.05
@@ -59,8 +60,7 @@ class SawyerPushEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -135,10 +135,8 @@ class SawyerPushEnvV3(SawyerXYZEnv):
         while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
             self._target_pos = goal_pos[3:]
-        self._target_pos = np.concatenate(
-            [goal_pos[-3:-1], [self.obj_init_pos[-1]]])
-        self.obj_init_pos = np.concatenate(
-            [goal_pos[:2], [self.obj_init_pos[-1]]])
+        self._target_pos = np.concatenate([goal_pos[-3:-1], [self.obj_init_pos[-1]]])
+        self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
 
         self._set_obj_xyz(self.obj_init_pos)
         self.model.site("goal").pos = self._target_pos
@@ -206,9 +204,10 @@ class SawyerPushEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             goal = self._target_pos

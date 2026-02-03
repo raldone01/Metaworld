@@ -39,8 +39,7 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -78,9 +77,9 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `_target_site_config`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `_target_site_config`."
+        )
         return [
             ("goal_unlock", self._target_pos),
             ("goal_lock", np.array([10.0, 10.0, 10.0])),
@@ -118,9 +117,9 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             del action
             gripper = obs[:3]
@@ -131,8 +130,7 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
 
             scale = np.array([0.25, 1.0, 0.5])
             shoulder_to_lock = (gripper + offset - lock) * scale
-            shoulder_to_lock_init = (
-                self.init_tcp + offset - self.obj_init_pos) * scale
+            shoulder_to_lock_init = (self.init_tcp + offset - self.obj_init_pos) * scale
 
             # This `ready_to_push` reward should be a *hint* for the agent, not an
             # end in itself. Make sure to devalue it compared to the value of
@@ -167,9 +165,10 @@ class SawyerDoorUnlockEnvV3(SawyerXYZEnv):
 
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             pullGoal = self._target_pos

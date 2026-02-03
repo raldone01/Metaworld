@@ -11,23 +11,23 @@ import gymnasium as gym  # type: ignore
 from gymnasium.envs.registration import register
 
 from metaworld.benchmark import (
-    get_mt1_v3_benchmark,
-    get_mtX_v3_benchmark,
-    get_mlCustom_v3_benchmark,
-    get_ml1_v3_benchmark,
-    get_mlX_v3_benchmark,
-    get_mtCustom_v3_benchmark,
-    TaskSet,
     Task,
+    TaskSet,
+    get_ml1_v3_benchmark,
+    get_mlCustom_v3_benchmark,
+    get_mlX_v3_benchmark,
+    get_mt1_v3_benchmark,
+    get_mtCustom_v3_benchmark,
+    get_mtX_v3_benchmark,
 )
 from metaworld.env_dict import (
     ENV_CLASS_MAP,
-    MT_BENCHMARKS_TRAIN_ENV_NAMES,
     ML_BENCHMARKS,
+    MT_BENCHMARKS_TRAIN_ENV_NAMES,
     MLXv3Benchmarks,
     MTXv3Benchmarks,
 )
-from metaworld.sawyer_xyz_env import SawyerXYZEnv  # type: ignore
+from metaworld.sawyer_xyz_env import SawyerXYZEnv  # noqa: F401
 from metaworld.wrappers import (
     AutoTerminateOnSuccessWrapper,
     CheckpointWrapper,
@@ -51,8 +51,7 @@ def _init_env_with_wrappers(
     normalize_reward_in_recurrent_info: bool = True,
     task_sampler: Literal["random", "pseudorandom"] = "random",
     sample_tasks_on_reset: bool = True,
-    reward_normalization_method: Literal["gymnasium",
-                                         "exponential"] | None = None,
+    reward_normalization_method: Literal["gymnasium", "exponential"] | None = None,
     normalize_observations: bool = False,
     reward_alpha: float = 0.001,
     num_envs: int | None = None,
@@ -72,8 +71,7 @@ def _init_env_with_wrappers(
     # Ensure we have a consistent starting rng state for the wrappers
     env.reset(seed=tasks[0].env_seed)
 
-    env = gym.wrappers.TimeLimit(
-        env, max_episode_steps)  # type: ignore
+    env = gym.wrappers.TimeLimit(env, max_episode_steps)  # type: ignore
     env = AutoTerminateOnSuccessWrapper(env)
     env.toggle_terminate_on_success(terminate_on_success)
     if use_one_hot:
@@ -108,8 +106,9 @@ def _init_env_with_wrappers(
 
 
 def _vectorizer_from_strategy(
-    vector_strategy: Literal["sync",
-                             "async"] | type[gym.vector.VectorEnv] | None = None,
+    vector_strategy: Literal["sync", "async"]
+    | type[gym.vector.VectorEnv]
+    | None = None,
 ) -> type[gym.vector.VectorEnv]:
     vectorizer: type[gym.vector.VectorEnv]
     if vector_strategy == "sync" or vector_strategy is None:
@@ -124,20 +123,20 @@ def _vectorizer_from_strategy(
 def _vectorize_task_set(
     task_set: TaskSet,
     meta_batch_size: int | None = None,
-    vector_strategy: Literal["sync",
-                             "async"] | type[gym.vector.VectorEnv] | None = None,
+    vector_strategy: Literal["sync", "async"]
+    | type[gym.vector.VectorEnv]
+    | None = None,
     autoreset_mode: gym.vector.AutoresetMode | str = gym.vector.AutoresetMode.SAME_STEP,
     **kwargs,
 ) -> gym.vector.VectorEnv:
-
     num_env_ids = len(task_set.env_names)
 
     if meta_batch_size is None:
         meta_batch_size = num_env_ids
 
-    assert (
-        meta_batch_size % len(task_set.env_names) == 0
-    ), "meta_batch_size must be divisible by the environment count"
+    assert meta_batch_size % len(task_set.env_names) == 0, (
+        "meta_batch_size must be divisible by the environment count"
+    )
     tasks_per_env = meta_batch_size // len(task_set.env_names)
 
     tasks_per_parallel_env = []
@@ -145,12 +144,11 @@ def _vectorize_task_set(
         # Filter tasks for this env name
         tasks = task_set.tasks_dict[env_name]
         # Split tasks into `tasks_per_env` sublists
-        subenv_tasks = [tasks[i::tasks_per_env]
-                        for i in range(0, tasks_per_env)]
+        subenv_tasks = [tasks[i::tasks_per_env] for i in range(0, tasks_per_env)]
         for tasks_for_subenv in subenv_tasks:
-            assert (
-                len(tasks_for_subenv) == len(tasks) // tasks_per_env
-            ), f"Invalid division of subtasks, expected {len(tasks) // tasks_per_env} got {len(tasks_for_subenv)}"
+            assert len(tasks_for_subenv) == len(tasks) // tasks_per_env, (
+                f"Invalid division of subtasks, expected {len(tasks) // tasks_per_env} got {len(tasks_for_subenv)}"
+            )
             tasks_per_parallel_env.append((env_name, tasks_for_subenv))
 
     env_name_to_id = {name: i for i, name in enumerate(task_set.env_names)}
@@ -175,7 +173,7 @@ def _vectorize_task_set(
         autoreset_mode=autoreset_mode,
         # The vectorized env consists of different envs which all have different
         # observation spaces. Therefore, we set the observation_mode to 'different'.
-        observation_mode='different',
+        observation_mode="different",
     )
 
 
@@ -330,7 +328,6 @@ def _mlCustom_vector_entry_point(
 
 
 def _register_mw_envs() -> None:
-
     # --- MT Envs ---
 
     register(
@@ -348,34 +345,28 @@ def _register_mw_envs() -> None:
         )
 
     register(
-        id="Meta-World/custom-mt-envs",
+        id="Meta-World/MTCustom-v3",
         vector_entry_point=_mtCustom_vector_entry_point,
     )
 
     # --- ML Envs ---
 
-    for split in ["train", "test"]:
+    register(
+        id="Meta-World/ML1-v3",
+        vector_entry_point=_ml1_vector_entry_point,
+    )
+
+    for ml_bench in ML_BENCHMARKS.keys():
         register(
-            id=f"Meta-World/ML1-v3-{split}",
+            id=f"Meta-World/{ml_bench}",
             vector_entry_point=partial(
-                _ml1_vector_entry_point,
-                split=split
+                _mlX_vector_entry_point,
+                ml_bench=ml_bench,
             ),
         )
 
-    for ml_bench in ML_BENCHMARKS.keys():
-        for split in ["train", "test"]:
-            register(
-                id=f"Meta-World/{ml_bench}-{split}",
-                vector_entry_point=partial(
-                    _mlX_vector_entry_point,
-                    ml_bench=ml_bench,
-                    split=split
-                ),
-            )
-
     register(
-        id="Meta-World/custom-ml-envs",
+        id="Meta-World/MLCustom-v3",
         vector_entry_point=_mlCustom_vector_entry_point,
     )
 

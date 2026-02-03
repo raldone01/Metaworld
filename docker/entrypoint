@@ -23,4 +23,6 @@ if ! [ -e "$file" ]; then
     exit 1
 fi
 
+source .venv/bin/activate
+
 exec "$@"

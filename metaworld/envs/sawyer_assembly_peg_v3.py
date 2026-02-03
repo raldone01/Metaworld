@@ -45,8 +45,7 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -83,9 +82,9 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert isinstance(
-            self._target_pos, np.ndarray
-        ), "`reset_model()` must be called before `_target_site_config` is accessed."
+        assert isinstance(self._target_pos, np.ndarray), (
+            "`reset_model()` must be called before `_target_site_config` is accessed."
+        )
         return [("pegTop", self._target_pos)]
 
     def _get_id_main_object(self) -> int:
@@ -117,8 +116,7 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
 
         if self.reward_function_version == "v1":
             self.obj_height = self.data.site_xpos[
-                mujoco.mj_name2id(
-                    self.model, mujoco.mjtObj.mjOBJ_SITE, "RoundNut-8")
+                mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "RoundNut-8")
             ][2]
             self.heightTarget = self.obj_height + 0.1
             self.pickCompleted = False
@@ -182,9 +180,9 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, bool]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             hand = obs[:3]
             wrench = obs[4:7]
@@ -230,9 +228,10 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
             graspPos = obs[4:7]
             objPos = self.get_body_com("RoundNut")
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget

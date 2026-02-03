@@ -43,8 +43,7 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -107,25 +106,23 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.15:
             goal_pos = self._get_state_rand_vec()
         assert self.obj_init_pos is not None
-        self.obj_init_pos = np.concatenate(
-            [goal_pos[:2], [self.obj_init_pos[-1]]])
+        self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
         self._target_pos = goal_pos[-3:]
 
         self._set_obj_xyz(self.obj_init_pos)
         self.model.site("goal").pos = self._target_pos
 
         assert self._target_pos is not None and self.hand_init_pos is not None
-        self.maxReachDist = np.abs(
-            self.hand_init_pos[-1] - self._target_pos[-1])
+        self.maxReachDist = np.abs(self.hand_init_pos[-1] - self._target_pos[-1])
 
         return self._get_obs()
 
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             obj = obs[4:7]
 
@@ -170,9 +167,10 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
         else:
             del action
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             goal = self._target_pos
@@ -186,8 +184,7 @@ class SawyerHandInsertEnvV3(SawyerXYZEnv):
 
             if reachDist < 0.05:
                 reachNearRew = 1000 * (self.maxReachDist - reachDist_z) + c1 * (
-                    np.exp(-(reachDist_z**2) / c2) +
-                    np.exp(-(reachDist_z**2) / c3)
+                    np.exp(-(reachDist_z**2) / c2) + np.exp(-(reachDist_z**2) / c3)
                 )
             else:
                 reachNearRew = 0.0

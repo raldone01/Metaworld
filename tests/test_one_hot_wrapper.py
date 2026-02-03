@@ -1,10 +1,8 @@
+import gymnasium as gym
 import numpy as np
 import pytest
 
-import metaworld
-import gymnasium as gym
-
-from metaworld.env_dict import ENV_NAMES, MT_BENCHMARKS_TRAIN_ENV_NAMES
+from metaworld.env_dict import MT_BENCHMARKS_TRAIN_ENV_NAMES
 
 
 @pytest.mark.parametrize("mtx_benchmark_name", MT_BENCHMARKS_TRAIN_ENV_NAMES.keys())

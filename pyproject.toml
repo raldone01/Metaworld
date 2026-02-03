@@ -32,8 +32,9 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["black", "isort", "mypy"]
+dev = ["ruff>=0.14.14", "ty>=0.0.14"]
 coverage = ["pytest-cov"]
+benchmarking = ["pyinstrument"]
 testing = [
     "ipdb",
     "memory_profiler",
@@ -57,23 +58,21 @@ metaworld = ["py.typed"]
 [tool.setuptools.packages.find]
 include = ["metaworld", "metaworld.*"]
 
-# Linters and Test tools #######################################################
-[tool.black]
-safe = true
-
-[tool.isort]
-atomic = true
-profile = "black"
-src_paths = ["metaworld", "tests"]
-
-[tool.mypy]
-plugins = ["numpy.typing.mypy_plugin"]
-exclude = ["docs"]
-
-[[tool.mypy.overrides]]
-module = ["setuptools", "glfw", "mujoco", "memory_profiler", "scipy.*"]
-ignore_missing_imports = true
-
 [tool.uv]
 # By default, install all dependency groups
 default-groups = "all"
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.lint]
+extend-select = [
+    "E501", # https://docs.astral.sh/ruff/rules/line-too-long/
+    "T100", # https://docs.astral.sh/ruff/rules/#flake8-debugger-t10
+    "T2",   # https://docs.astral.sh/ruff/rules/#flake8-print-t20
+    "TD",   # https://docs.astral.sh/ruff/rules/#flake8-todos-td
+    "UP",   # https://docs.astral.sh/ruff/rules/#pyupgrade-up
+    "I",    # https://docs.astral.sh/ruff/rules/#isort-i
+    "N",    # https://docs.astral.sh/ruff/rules/#pep8-naming-n
+    "D",    # https://docs.astral.sh/ruff/rules/#pydocstyle-d
+]

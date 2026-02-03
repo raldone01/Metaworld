@@ -1,15 +1,19 @@
 from __future__ import annotations
 
-from typing import Any, Sequence
-from typing_extensions import Literal
-from dataclasses import dataclass
-
 import copy
+from dataclasses import dataclass
+from typing import Any, Sequence
 
 import numpy as np
+from typing_extensions import Literal
 
+from metaworld.env_dict import (
+    ML_BENCHMARKS,
+    MT_BENCHMARKS_TRAIN_ENV_NAMES,
+    MLXv3Benchmarks,
+    MTXv3Benchmarks,
+)
 from metaworld.utils.numpy import randint
-from metaworld.env_dict import MT_BENCHMARKS_TRAIN_ENV_NAMES, ML_BENCHMARKS, MLXv3Benchmarks, MTXv3Benchmarks
 
 _ML_ENV_KWARGS_OVERRIDE = dict(goal_observable=False)
 """The overrides for the Meta-Learning benchmarks. Disables the inclusion of the goal position in the observation."""
@@ -75,9 +79,7 @@ def _generate_task_set(
 
     env_kwargs_overrides = copy.deepcopy(env_kwargs_overrides)
 
-    tasks_dict: dict[str, list[Task]] = {
-        env_name: [] for env_name in env_names
-    }
+    tasks_dict: dict[str, list[Task]] = {env_name: [] for env_name in env_names}
 
     if num_tasks_per_env == 1 and len(env_names) == 1:
         # Directly use the benchmark seed.
@@ -85,8 +87,11 @@ def _generate_task_set(
         for env_name in env_names:
             tasks_dict[env_name].append(Task(env_name, benchmark_seed))
     else:
-        seed_rng = np.random.default_rng(
-            benchmark_seed) if benchmark_seed is not None else np.random.default_rng()
+        seed_rng = (
+            np.random.default_rng(benchmark_seed)
+            if benchmark_seed is not None
+            else np.random.default_rng()
+        )
 
         for env_name in env_names:
             seeds = np.atleast_1d(randint(seed_rng, size=num_tasks_per_env))
@@ -102,14 +107,16 @@ def _generate_task_set(
 
 
 class Benchmark:
-    def __init__(self,
-                 name: str,
-                 test_env_names: list[str],
-                 train_env_names: list[str],
-                 seed: int | None = None,
-                 test_train_same_seed: bool = False,
-                 env_kwargs_overrides: dict[str, Any] | None = None,
-                 num_tasks_per_env: int | None = None):
+    def __init__(
+        self,
+        name: str,
+        test_env_names: list[str],
+        train_env_names: list[str],
+        seed: int | None = None,
+        test_train_same_seed: bool = False,
+        env_kwargs_overrides: dict[str, Any] | None = None,
+        num_tasks_per_env: int | None = None,
+    ):
         self.name = name
         self.test_env_names = test_env_names
         self.train_env_names = train_env_names
@@ -147,7 +154,9 @@ class Benchmark:
         return self.generate_task_set(split="test")
 
 
-def get_mt1_v3_benchmark(env_name: str, seed: int | None = None, num_tasks_per_env: int | None = None) -> Benchmark:
+def get_mt1_v3_benchmark(
+    env_name: str, seed: int | None = None, num_tasks_per_env: int | None = None
+) -> Benchmark:
     """Returns the MT1 benchmark for a given environment name.
 
     MT1 is a goal-conditioned RL environment for a single Metaworld task.
@@ -174,9 +183,11 @@ def get_mt1_v3_benchmark(env_name: str, seed: int | None = None, num_tasks_per_e
     )
 
 
-def get_mtX_v3_benchmark(mt_bench: MTXv3Benchmarks,
-                         seed: int | None = None,
-                         num_tasks_per_env: int | None = None) -> Benchmark:
+def get_mtX_v3_benchmark(
+    mt_bench: MTXv3Benchmarks,
+    seed: int | None = None,
+    num_tasks_per_env: int | None = None,
+) -> Benchmark:
     """Returns the MTX benchmark for a given MT benchmark name.
 
     The MTX benchmarks are multi-task RL environments for multiple Metaworld tasks.
@@ -195,8 +206,7 @@ def get_mtX_v3_benchmark(mt_bench: MTXv3Benchmarks,
 
     if mt_bench not in MT_BENCHMARKS_TRAIN_ENV_NAMES:
         if mt_bench == "MT1-v3":
-            raise ValueError(
-                "Use `get_mt1_v3_benchmark` to get the MT1-v3 benchmark.")
+            raise ValueError("Use `get_mt1_v3_benchmark` to get the MT1-v3 benchmark.")
         raise ValueError(f"Invalid MT benchmark name: {mt_bench}")
 
     env_names = MT_BENCHMARKS_TRAIN_ENV_NAMES[mt_bench]
@@ -241,7 +251,9 @@ def get_mtCustom_v3_benchmark(
     )
 
 
-def get_ml1_v3_benchmark(env_name: str, seed: int | None = None, num_tasks_per_env: int | None = None) -> Benchmark:
+def get_ml1_v3_benchmark(
+    env_name: str, seed: int | None = None, num_tasks_per_env: int | None = None
+) -> Benchmark:
     """Returns the ML1 benchmark for a given environment name.
 
     The ML1 benchmark is a goal-conditioned RL environment for a single Metaworld task.
@@ -268,9 +280,11 @@ def get_ml1_v3_benchmark(env_name: str, seed: int | None = None, num_tasks_per_e
     )
 
 
-def get_mlX_v3_benchmark(ml_bench: MLXv3Benchmarks,
-                         seed: int | None = None,
-                         num_tasks_per_env: int | None = None) -> Benchmark:
+def get_mlX_v3_benchmark(
+    ml_bench: MLXv3Benchmarks,
+    seed: int | None = None,
+    num_tasks_per_env: int | None = None,
+) -> Benchmark:
     """Returns the MLX benchmark for a given ML benchmark name.
 
     The MLX benchmarks are multi-task RL environments for multiple Metaworld tasks.
@@ -288,15 +302,14 @@ def get_mlX_v3_benchmark(ml_bench: MLXv3Benchmarks,
 
     if ml_bench not in ML_BENCHMARKS:
         if ml_bench == "ML1-v3":
-            raise ValueError(
-                "Use `get_ml1_v3_benchmark` to get the ML1 benchmark.")
+            raise ValueError("Use `get_ml1_v3_benchmark` to get the ML1 benchmark.")
         raise ValueError(f"Invalid ML benchmark name: {ml_bench}")
 
     ml_envs = ML_BENCHMARKS[ml_bench]
     return Benchmark(
         name=ml_bench,
-        train_env_names=ml_envs['train'],
-        test_env_names=ml_envs['test'],
+        train_env_names=ml_envs["train"],
+        test_env_names=ml_envs["test"],
         seed=seed,
         test_train_same_seed=False,
         env_kwargs_overrides=_ML_ENV_KWARGS_OVERRIDE,

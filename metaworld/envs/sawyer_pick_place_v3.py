@@ -27,6 +27,7 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
+
     ENV_NAME: str = "pick-place-v3"
 
     def __init__(
@@ -57,8 +58,7 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -129,8 +129,7 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.fix_extreme_obj_pos(
-            self.init_config["obj_init_pos"])
+        self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config["obj_init_pos"])
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
@@ -211,17 +210,14 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         # compute the tcp_obj distance in the x_z plane
         tcp_xz = tcp + np.array([0.0, -tcp[1], 0.0])
         obj_position_x_z = np.copy(obj_pos) + np.array([0.0, -obj_pos[1], 0.0])
-        tcp_obj_norm_x_z = float(np.linalg.norm(
-            tcp_xz - obj_position_x_z, ord=2))
+        tcp_obj_norm_x_z = float(np.linalg.norm(tcp_xz - obj_position_x_z, ord=2))
 
         # used for computing the tcp to object object margin in the x_z plane
         assert self.obj_init_pos is not None
-        init_obj_x_z = self.obj_init_pos + \
-            np.array([0.0, -self.obj_init_pos[1], 0.0])
+        init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
         tcp_obj_x_z_margin = (
-            np.linalg.norm(init_obj_x_z - init_tcp_x_z,
-                           ord=2) - x_z_success_margin
+            np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         )
 
         x_z_caging = reward_utils.tolerance(
@@ -286,9 +282,10 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -342,12 +339,10 @@ class SawyerPickPlaceEnvV3(SawyerXYZEnv):
                 and (reachDist > 0.02)
             )
 
-            cond = self.pickCompleted and (
-                reachDist < 0.1) and not (objDropped)
+            cond = self.pickCompleted and (reachDist < 0.1) and not (objDropped)
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2) +
-                    np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
             else:

@@ -43,8 +43,7 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -201,9 +200,10 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -250,8 +250,7 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2) +
-                    np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
             else:

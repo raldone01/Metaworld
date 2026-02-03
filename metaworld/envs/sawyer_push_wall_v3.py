@@ -30,6 +30,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
+
     ENV_NAME: str = "push-wall-v3"
 
     OBJ_RADIUS: float = 0.02
@@ -62,8 +63,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -115,19 +115,16 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         return Rotation.from_matrix(geom_xmat).as_quat()
 
     def adjust_initObjPos(self, orig_init_pos: npt.NDArray[Any]) -> npt.NDArray[Any]:
-        diff = self.get_body_com("obj")[:2] - \
-            self.data.geom("objGeom").xpos[:2]
+        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
         return np.array(
-            [adjustedPos[0], adjustedPos[1],
-                self.data.geom("objGeom").xpos[-1]]
+            [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
         )
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.adjust_initObjPos(
-            self.init_config["obj_init_pos"])
+        self.obj_init_pos = self.adjust_initObjPos(self.init_config["obj_init_pos"])
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
@@ -135,10 +132,8 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()
             self._target_pos = goal_pos[3:]
-        self._target_pos = np.concatenate(
-            [goal_pos[-3:-1], [self.obj_init_pos[-1]]])
-        self.obj_init_pos = np.concatenate(
-            [goal_pos[:2], [self.obj_init_pos[-1]]])
+        self._target_pos = np.concatenate([goal_pos[-3:-1], [self.obj_init_pos[-1]]])
+        self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
 
         self.model.site("goal").pos = self._target_pos
 
@@ -146,8 +141,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         self.objHeight = self.data.geom("objGeom").xpos[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
-        self.maxReachDist = np.linalg.norm(
-            self.init_tcp - np.array(self._target_pos))
+        self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
         self.maxPushDist = np.linalg.norm(
             self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
         )
@@ -180,16 +174,13 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
             tcp_to_obj = float(np.linalg.norm(obj - tcp))
 
             in_place_scaling = np.array([3.0, 1.0, 1.0])
-            obj_to_midpoint = float(np.linalg.norm(
-                (obj - midpoint) * in_place_scaling))
+            obj_to_midpoint = float(np.linalg.norm((obj - midpoint) * in_place_scaling))
             obj_to_midpoint_init = float(
-                np.linalg.norm((self.obj_init_pos - midpoint)
-                               * in_place_scaling)
+                np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling)
             )
 
             obj_to_target = float(np.linalg.norm(obj - target))
-            obj_to_target_init = float(
-                np.linalg.norm(self.obj_init_pos - target))
+            obj_to_target_init = float(np.linalg.norm(self.obj_init_pos - target))
 
             in_place_part1 = reward_utils.tolerance(
                 obj_to_midpoint,
@@ -235,9 +226,10 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             goal = self._target_pos

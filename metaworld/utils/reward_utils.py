@@ -1,4 +1,5 @@
 """A set of reward utilities written by the authors of dm_control."""
+
 from __future__ import annotations
 
 from typing import Any, Literal, TypeVar

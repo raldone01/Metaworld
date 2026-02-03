@@ -85,9 +85,9 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `_target_site_config`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `_target_site_config`."
+        )
         return [("pegTop", self._target_pos)]
 
     def _get_id_main_object(self) -> int:
@@ -169,9 +169,9 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, bool]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             hand = obs[:3]
             wrench = obs[4:7]
@@ -218,9 +218,10 @@ class SawyerNutDisassembleEnvV3(SawyerXYZEnv):
             graspPos = obs[4:7]
             objPos = graspPos
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget

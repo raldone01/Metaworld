@@ -41,8 +41,7 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -172,9 +171,9 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             theta = float(self.data.joint("doorjoint").qpos.item())
 
@@ -183,9 +182,7 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
 
             reward = sum(
                 (
-                    2.0 *
-                    reward_utils.hamacher_product(
-                        reward_steps[0], reward_grab),
+                    2.0 * reward_utils.hamacher_product(reward_steps[0], reward_grab),
                     8.0 * reward_steps[1],
                 )
             )
@@ -201,9 +198,10 @@ class SawyerDoorEnvV3(SawyerXYZEnv):
             del actions
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             pullGoal = self._target_pos

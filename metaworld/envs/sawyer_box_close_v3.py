@@ -39,8 +39,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
 
         self._target_to_obj_init = None
 
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
@@ -105,8 +104,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         goal_pos = self._get_state_rand_vec()
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.25:
             goal_pos = self._get_state_rand_vec()
-        self.obj_init_pos = np.concatenate(
-            [goal_pos[:2], [self.obj_init_pos[-1]]])
+        self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
         self._target_pos = goal_pos[-3:]
 
         self.model.body("boxbody").pos = np.concatenate(
@@ -199,20 +197,17 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, bool]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             reward_grab = SawyerBoxCloseEnvV3._reward_grab_effort(actions)
             reward_quat = SawyerBoxCloseEnvV3._reward_quat(obs)
-            reward_steps = SawyerBoxCloseEnvV3._reward_pos(
-                obs, self._target_pos)
+            reward_steps = SawyerBoxCloseEnvV3._reward_pos(obs, self._target_pos)
 
             reward = sum(
                 (
-                    2.0 *
-                    reward_utils.hamacher_product(
-                        reward_grab, reward_steps[0]),
+                    2.0 * reward_utils.hamacher_product(reward_grab, reward_steps[0]),
                     8.0 * reward_steps[1],
                 )
             )
@@ -235,9 +230,10 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -287,8 +283,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2) +
-                    np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
                 placeRew, placingDist = [placeRew, placingDist]

@@ -44,8 +44,7 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -112,8 +111,7 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
 
         self.model.site("goal").pos = self._target_pos
 
-        self.maxDist = np.linalg.norm(
-            self.obj_init_pos[:-1] - self._target_pos[:-1])
+        self.maxDist = np.linalg.norm(self.obj_init_pos[:-1] - self._target_pos[:-1])
 
         return self._get_obs()
 
@@ -170,9 +168,10 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
 
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             pullGoal = self._target_pos

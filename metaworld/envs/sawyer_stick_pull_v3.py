@@ -38,10 +38,8 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
         # Fix object init position.
         self.obj_init_pos = np.array([0.2, 0.69, 0.0])
         self.obj_init_qpos = np.array([0.0, 0.09])
-        self.obj_space = Box(np.array(obj_low), np.array(
-            obj_high), dtype=np.float64)
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.obj_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
         self._random_reset_space = Box(
             np.hstack((obj_low, goal_low)),
             np.hstack((obj_high, goal_high)),
@@ -150,10 +148,8 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
         goal_pos = self._get_state_rand_vec()
         while np.linalg.norm(goal_pos[:2] - goal_pos[-3:-1]) < 0.1:
             goal_pos = self._get_state_rand_vec()
-        self.stick_init_pos = np.concatenate(
-            [goal_pos[:2], [self.stick_init_pos[-1]]])
-        self._target_pos = np.concatenate(
-            [goal_pos[-3:-1], [self.stick_init_pos[-1]]])
+        self.stick_init_pos = np.concatenate([goal_pos[:2], [self.stick_init_pos[-1]]])
+        self._target_pos = np.concatenate([goal_pos[-3:-1], [self.stick_init_pos[-1]]])
 
         self._set_stick_xyz(self.stick_init_pos)
         self._set_obj_xyz(self.obj_init_qpos)
@@ -166,8 +162,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
         self.heightTarget = self.stickHeight + self.liftThresh
 
         assert self.obj_init_pos is not None and self.stick_init_pos is not None
-        self.maxPullDist = np.linalg.norm(
-            self.obj_init_pos[:2] - self._target_pos[:-1])
+        self.maxPullDist = np.linalg.norm(self.obj_init_pos[:2] - self._target_pos[:-1])
         self.maxPlaceDist = (
             np.linalg.norm(
                 np.array(
@@ -207,11 +202,9 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
             handle_to_target = float(np.linalg.norm(handle - target))
 
             yz_scaling = np.array([1.0, 1.0, 2.0])
-            stick_to_container = float(np.linalg.norm(
-                (stick - container) * yz_scaling))
+            stick_to_container = float(np.linalg.norm((stick - container) * yz_scaling))
             stick_in_place_margin = float(
-                np.linalg.norm(
-                    (self.stick_init_pos - container_init_pos) * yz_scaling)
+                np.linalg.norm((self.stick_init_pos - container_init_pos) * yz_scaling)
             )
             stick_in_place = reward_utils.tolerance(
                 stick_to_container,
@@ -291,9 +284,10 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
             stickPos = obs[4:7]
             objPos = obs[6:9]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -338,8 +332,7 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
                 if placeDist < 0.05:
                     c4 = 2000
                     pullRew += 1000 * (self.maxPullDist - pullDist) + c4 * (
-                        np.exp(-(pullDist**2) / c2) +
-                        np.exp(-(pullDist**2) / c3)
+                        np.exp(-(pullDist**2) / c2) + np.exp(-(pullDist**2) / c3)
                     )
 
                 pullRew = max(pullRew, 0)

@@ -28,6 +28,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
         - (6/24/20) Separated pick-place-wall into from
           reach-push-pick-place-wall.
     """
+
     ENV_NAME: str = "pick-place-wall-v3"
 
     def __init__(
@@ -58,8 +59,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -115,8 +115,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned
         # If this is not done, the object could be initialized in an extreme position
-        diff = self.get_body_com("obj")[:2] - \
-            self.data.geom("objGeom").xpos[:2]
+        diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         # The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
@@ -125,8 +124,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.adjust_initObjPos(
-            self.init_config["obj_init_pos"])
+        self.obj_init_pos = self.adjust_initObjPos(self.init_config["obj_init_pos"])
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
@@ -144,8 +142,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
         self.objHeight = self.data.geom("objGeom").xpos[2]
         self.heightTarget = self.objHeight + self.liftThresh
 
-        self.maxReachDist = np.linalg.norm(
-            self.init_tcp - np.array(self._target_pos))
+        self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
         self.maxPushDist = np.linalg.norm(
             self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
         )
@@ -169,9 +166,9 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert (
-            self._target_pos is not None and self.obj_init_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None and self.obj_init_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
             tcp = self.tcp_center
@@ -183,16 +180,13 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
             tcp_to_obj = float(np.linalg.norm(obj - tcp))
 
             in_place_scaling = np.array([1.0, 1.0, 3.0])
-            obj_to_midpoint = float(np.linalg.norm(
-                (obj - midpoint) * in_place_scaling))
+            obj_to_midpoint = float(np.linalg.norm((obj - midpoint) * in_place_scaling))
             obj_to_midpoint_init = float(
-                np.linalg.norm((self.obj_init_pos - midpoint)
-                               * in_place_scaling)
+                np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling)
             )
 
             obj_to_target = float(np.linalg.norm(obj - target))
-            obj_to_target_init = float(
-                np.linalg.norm(self.obj_init_pos - target))
+            obj_to_target_init = float(np.linalg.norm(self.obj_init_pos - target))
 
             in_place_part1 = reward_utils.tolerance(
                 obj_to_midpoint,
@@ -248,9 +242,10 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -302,8 +297,7 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2) +
-                    np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
                 placeRew, placingDist = [placeRew, placingDist]

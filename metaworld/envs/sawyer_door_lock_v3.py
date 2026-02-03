@@ -41,8 +41,7 @@ class SawyerDoorLockEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -80,9 +79,9 @@ class SawyerDoorLockEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `_target_site_config`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `_target_site_config`."
+        )
         return [
             ("goal_lock", self._target_pos),
             ("goal_unlock", np.array([10.0, 10.0, 10.0])),
@@ -115,9 +114,9 @@ class SawyerDoorLockEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             del action
             obj = obs[4:7]
@@ -125,8 +124,7 @@ class SawyerDoorLockEnvV3(SawyerXYZEnv):
 
             scale = np.array([0.25, 1.0, 0.5])
             tcp_to_obj = float(np.linalg.norm((obj - tcp) * scale))
-            tcp_to_obj_init = float(np.linalg.norm(
-                (obj - self.init_left_pad) * scale))
+            tcp_to_obj_init = float(np.linalg.norm((obj - self.init_left_pad) * scale))
 
             obj_to_target = abs(self._target_pos[2] - obj[2])
 
@@ -156,9 +154,10 @@ class SawyerDoorLockEnvV3(SawyerXYZEnv):
 
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             pullGoal = self._target_pos

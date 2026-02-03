@@ -27,6 +27,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
             i.e. (self._target_pos - pos_hand)
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
+
     ENV_NAME: str = "reach-v3"
 
     def __init__(
@@ -57,8 +58,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -110,8 +110,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
-        self.obj_init_pos = self.fix_extreme_obj_pos(
-            self.init_config["obj_init_pos"])
+        self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config["obj_init_pos"])
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
         goal_pos = self._get_state_rand_vec()
@@ -125,8 +124,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
 
         self.model.site("goal").pos = self._target_pos
 
-        self.maxReachDist = np.linalg.norm(
-            self.init_tcp - np.array(self._target_pos))
+        self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
 
         return self._get_obs()
 
@@ -144,8 +142,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
             tcp_to_target = float(np.linalg.norm(tcp - target))
             # obj_to_target = float(np.linalg.norm(obj - target))
 
-            in_place_margin = float(
-                np.linalg.norm(self.hand_init_pos - target))
+            in_place_margin = float(np.linalg.norm(self.hand_init_pos - target))
             in_place = reward_utils.tolerance(
                 tcp_to_target,
                 bounds=(0, _TARGET_RADIUS),
@@ -155,9 +152,10 @@ class SawyerReachEnvV3(SawyerXYZEnv):
 
             return (10 * in_place, tcp_to_target, in_place)
         else:
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
             goal = self._target_pos
 

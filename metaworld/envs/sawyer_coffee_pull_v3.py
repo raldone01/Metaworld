@@ -42,8 +42,7 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
             dtype=np.float64,
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -84,9 +83,9 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `_target_site_config`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `_target_site_config`."
+        )
         return [("mug_goal", self._target_pos)]
 
     def _get_id_main_object(self) -> int:
@@ -111,8 +110,7 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
 
         pos_mug_init, pos_mug_goal = np.split(self._get_state_rand_vec(), 2)
         while np.linalg.norm(pos_mug_init[:2] - pos_mug_goal[:2]) < 0.15:
-            pos_mug_init, pos_mug_goal = np.split(
-                self._get_state_rand_vec(), 2)
+            pos_mug_init, pos_mug_goal = np.split(self._get_state_rand_vec(), 2)
 
         self._set_obj_xyz(pos_mug_init)
         self.obj_init_pos = pos_mug_init
@@ -132,9 +130,9 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             obj = obs[4:7]
             target = self._target_pos.copy()
@@ -184,9 +182,10 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             goal = self._target_pos

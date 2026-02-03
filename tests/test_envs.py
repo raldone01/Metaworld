@@ -1,8 +1,7 @@
-import numpy as np
 import pytest
 
+from metaworld.agent import RandomMetaworldAgent, run_agent_episode
 from metaworld.env_dict import ENV_NAMES
-from tests.gym.helpers import RandomMetaworldAgent, run_agent_episode
 
 
 @pytest.mark.parametrize("env_name", ENV_NAMES)
@@ -13,7 +12,7 @@ def test_env_seeds_produce_unique_observations(env_name):
     # since it contains randomized object positions and the goal position.
     max_episode_steps = 1
 
-    record_keys = set(['observations'])
+    record_keys = set(["observations"])
     seeds = [42, 43, 44, 45, 46]
     observations = []
 
@@ -25,9 +24,10 @@ def test_env_seeds_produce_unique_observations(env_name):
             max_episode_steps=max_episode_steps,
             record_keys=record_keys,
         )
-        observations.append(ep_results['observations'][0])
+        observations.append(ep_results["observations"][0])
 
     # Verify that all observations are unique
     unique_observations = {tuple(obs) for obs in observations}
-    assert len(unique_observations) == len(seeds), \
+    assert len(unique_observations) == len(seeds), (
         f"Not all observations are unique for env {env_name} with different seeds"
+    )

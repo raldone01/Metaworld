@@ -106,8 +106,7 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
             goal_pos = self._get_state_rand_vec()
             basket_pos = goal_pos[3:]
         assert self.obj_init_pos is not None
-        self.obj_init_pos = np.concatenate(
-            [goal_pos[:2], [self.obj_init_pos[-1]]])
+        self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
         self.model.body("basket_goal").pos = basket_pos
         self._target_pos = self.data.site("goal").xpos
         self._set_obj_xyz(self.obj_init_pos)
@@ -133,9 +132,9 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert (
-            self._target_pos is not None and self.obj_init_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None and self.obj_init_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             obj = obs[4:7]
             # Force target to be slightly above basketball hoop
@@ -194,9 +193,10 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -251,8 +251,7 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2) +
-                    np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
                 placeRew, placingDist = [placeRew, placingDist]

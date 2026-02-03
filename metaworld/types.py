@@ -6,7 +6,6 @@ import numpy as np
 import numpy.typing as npt
 from typing_extensions import NotRequired, TypeAlias, TypedDict
 
-
 XYZ: TypeAlias = "Tuple[float, float, float]"
 """A 3D coordinate."""
 

@@ -8,8 +8,8 @@ import numpy as np
 from gymnasium import Env
 from numpy.typing import NDArray
 
-from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.benchmark import Task
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.utils.numpy import randint
 
 
@@ -27,8 +27,8 @@ class OneHotWrapper(gym.ObservationWrapper, gym.utils.RecordConstructorArgs):
         self.one_hot[env_id] = 1.0
 
         self._observation_space = gym.spaces.Box(
-            np.concatenate([env_lb, one_hot_lb], dtype=np.float32), np.concatenate(
-                [env_ub, one_hot_ub], dtype=np.float32)
+            np.concatenate([env_lb, one_hot_lb], dtype=np.float32),
+            np.concatenate([env_ub, one_hot_ub], dtype=np.float32),
         )
 
     def observation(self, obs: NDArray) -> NDArray:
@@ -46,8 +46,7 @@ def _deserialize_task(task_dict: dict[str, str]) -> Task:
     assert "env_name" in task_dict and "data" in task_dict
 
     return Task(
-        env_name=task_dict["env_name"], data=base64.b64decode(
-            task_dict["data"])
+        env_name=task_dict["env_name"], data=base64.b64decode(task_dict["data"])
     )
 
 
@@ -300,12 +299,12 @@ class CheckpointWrapper(gym.Wrapper):
     A Gymnasium Wrapper to enable checkpointing of environments within a larger multi-environment setup.
     Checkpointing is only supported between episodes (i.e., after reset()).
     """
+
     env_id: str
 
     def __init__(self, env: gym.Env, env_id: str):
         super().__init__(env)
-        assert hasattr(self.env, "get_checkpoint") and callable(
-            self.env.get_checkpoint)
+        assert hasattr(self.env, "get_checkpoint") and callable(self.env.get_checkpoint)
         assert hasattr(self.env, "load_checkpoint") and callable(
             self.env.load_checkpoint
         )

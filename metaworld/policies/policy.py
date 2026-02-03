@@ -9,7 +9,7 @@ import numpy.typing as npt
 
 
 def assert_fully_parsed(
-    func: Callable[[npt.NDArray[np.float64]], dict[str, npt.NDArray[np.float64]]]
+    func: Callable[[npt.NDArray[np.float64]], dict[str, npt.NDArray[np.float64]]],
 ) -> Callable[[npt.NDArray[np.float64]], dict[str, npt.NDArray[np.float64]]]:
     """Decorator function to ensure observations are fully parsed.
 

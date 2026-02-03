@@ -37,8 +37,7 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -106,8 +105,7 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
         self.model.site("goal").pos = self._target_pos
 
         assert self._target_pos is not None and self.obj_init_pos is not None
-        self.maxPlacingDist = np.linalg.norm(
-            self._target_pos - self.obj_init_pos)
+        self.maxPlacingDist = np.linalg.norm(self._target_pos - self.obj_init_pos)
 
         return self._get_obs()
 
@@ -145,8 +143,7 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
                 margin=in_place_margin,
                 sigmoid="long_tail",
             )
-            grasp_success = tcp_opened > 0.5 and (
-                obj[0] - self.obj_init_pos[0] > 0.015)
+            grasp_success = tcp_opened > 0.5 and (obj[0] - self.obj_init_pos[0] > 0.015)
 
             reward = 2 * object_grasped
 
@@ -168,9 +165,10 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             placingGoal = self._target_pos
@@ -201,8 +199,7 @@ class SawyerPegUnplugSideEnvV3(SawyerXYZEnv):
             c3 = 0.001
             if self.reachCompleted:
                 placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                    np.exp(-(placingDist**2) / c2) +
-                    np.exp(-(placingDist**2) / c3)
+                    np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                 )
                 placeRew = max(placeRew, 0)
                 placeRew, placingDist = [placeRew, placingDist]

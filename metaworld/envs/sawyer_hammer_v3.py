@@ -41,8 +41,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -82,8 +81,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
 
     def _get_pos_objects(self) -> npt.NDArray[Any]:
         return np.hstack(
-            (self.get_body_com("hammer").copy(),
-             self.get_body_com("nail_link").copy())
+            (self.get_body_com("hammer").copy(), self.get_body_com("nail_link").copy())
         )
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
@@ -210,9 +208,10 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
             hammerHeadPos = self.data.geom("HammerHead").xpos.copy()
             objPos = self.data.site("nailHead").xpos
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget

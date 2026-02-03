@@ -39,8 +39,7 @@ class SawyerDrawerOpenEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         self.maxDist = 0.2
         self.target_reward = 1000 * self.maxDist + 1000 * 2
@@ -107,9 +106,9 @@ class SawyerDrawerOpenEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             gripper = obs[:3]
             handle = obs[4:7]
@@ -120,8 +119,7 @@ class SawyerDrawerOpenEnvV3(SawyerXYZEnv):
                 handle_error, bounds=(0, 0.02), margin=self.maxDist, sigmoid="long_tail"
             )
 
-            handle_pos_init = self._target_pos + \
-                np.array([0.0, self.maxDist, 0.0])
+            handle_pos_init = self._target_pos + np.array([0.0, self.maxDist, 0.0])
             # Emphasize XY error so that gripper is able to drop down and cage
             # handle without running into it. By doing this, we are assuming
             # that the reward in the Z direction is small enough that the agent
@@ -153,9 +151,10 @@ class SawyerDrawerOpenEnvV3(SawyerXYZEnv):
             del action
 
             objPos = obs[4:7]
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
             pullGoal = self._target_pos
             pullDist = np.abs(objPos[1] - pullGoal[1])

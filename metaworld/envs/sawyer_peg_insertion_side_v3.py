@@ -30,6 +30,7 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
         - (6/16/20) Used existing goal_low and goal_high values to constrain
             the hole's position, as opposed to hand_low and hand_high
     """
+
     ENV_NAME: str = "peg-insert-side-v3"
 
     TARGET_RADIUS: float = 0.07
@@ -177,15 +178,11 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
                 sigmoid="long_tail",
             )
             ip_orig = in_place
-            brc_col_box_1 = self._get_site_pos(
-                "bottom_right_corner_collision_box_1")
-            tlc_col_box_1 = self._get_site_pos(
-                "top_left_corner_collision_box_1")
+            brc_col_box_1 = self._get_site_pos("bottom_right_corner_collision_box_1")
+            tlc_col_box_1 = self._get_site_pos("top_left_corner_collision_box_1")
 
-            brc_col_box_2 = self._get_site_pos(
-                "bottom_right_corner_collision_box_2")
-            tlc_col_box_2 = self._get_site_pos(
-                "top_left_corner_collision_box_2")
+            brc_col_box_2 = self._get_site_pos("bottom_right_corner_collision_box_2")
+            tlc_col_box_2 = self._get_site_pos("top_left_corner_collision_box_2")
             collision_box_bottom_1 = reward_utils.rect_prism_tolerance(
                 curr=obj_head, one=tlc_col_box_1, zero=brc_col_box_1
             )
@@ -246,9 +243,10 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
             objPos = obs[4:7]
             pegHeadPos = self._get_site_pos("pegHead")
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -301,14 +299,12 @@ class SawyerPegInsertionSideEnvV3(SawyerXYZEnv):
                 and (reachDist > 0.02)
             )
 
-            cond = self.pickCompleted and (
-                reachDist < 0.1) and not (objDropped)
+            cond = self.pickCompleted and (reachDist < 0.1) and not (objDropped)
 
             if cond:
                 if placingDistHead <= 0.05:
                     placeRew = 1000 * (self.maxPlacingDist - placingDist) + c1 * (
-                        np.exp(-(placingDist**2) / c2)
-                        + np.exp(-(placingDist**2) / c3)
+                        np.exp(-(placingDist**2) / c2) + np.exp(-(placingDist**2) / c3)
                     )
                 else:
                     placeRew = 1000 * (self.maxPlacingDist - placingDistHead) + c1 * (

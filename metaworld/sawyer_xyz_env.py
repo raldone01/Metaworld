@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import copy
+from abc import ABC, abstractmethod
 from functools import cached_property
 from typing import Any, Literal, SupportsFloat
-from abc import ABC, abstractmethod
 
 import mujoco
 import numpy as np
@@ -180,7 +180,6 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         action_scale: float = 1.0 / 100,
         action_rot_scale: float = 1.0,
     ) -> None:
-
         self.hand_low = np.array(hand_low)
         self.hand_high = np.array(hand_high)
 
@@ -228,10 +227,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             self.model, self.data
         )  # *** DO NOT REMOVE: EZPICKLE WON'T WORK *** #
 
-        self.init_left_pad: npt.NDArray[Any] = self.get_body_com(
-            "leftpad").copy()
-        self.init_right_pad: npt.NDArray[Any] = self.get_body_com(
-            "rightpad").copy()
+        self.init_left_pad: npt.NDArray[Any] = self.get_body_com("leftpad").copy()
+        self.init_right_pad: npt.NDArray[Any] = self.get_body_com("rightpad").copy()
 
         self.action_space = Box(  # type: ignore
             np.array([-1, -1, -1, -1]),
@@ -447,10 +444,8 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         # clipping removes the effects of this random extra distance
         # that is produced by mujoco
 
-        gripper_distance_apart = np.linalg.norm(
-            finger_right.xpos - finger_left.xpos)
-        gripper_distance_apart = np.clip(
-            gripper_distance_apart / 0.1, 0.0, 1.0)
+        gripper_distance_apart = np.linalg.norm(finger_right.xpos - finger_left.xpos)
+        gripper_distance_apart = np.clip(gripper_distance_apart / 0.1, 0.0, 1.0)
 
         obs_obj_max_len: int = 14
         obs_obj_padded = np.zeros(obs_obj_max_len)
@@ -462,8 +457,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         assert len(obj_quat) % 4 == 0
         obj_quat_split = np.split(obj_quat, len(obj_quat) // 4)
         obs_obj_padded[: len(obj_pos) + len(obj_quat)] = np.hstack(
-            [np.hstack((pos, quat))
-             for pos, quat in zip(obj_pos_split, obj_quat_split)]
+            [np.hstack((pos, quat)) for pos, quat in zip(obj_pos_split, obj_quat_split)]
         )
         return np.hstack((pos_hand, gripper_distance_apart, obs_obj_padded))
 
@@ -500,9 +494,9 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             goal_low = np.zeros(3)
             goal_high = np.zeros(3)
         else:
-            assert (
-                self.goal_space is not None
-            ), "The goal space must be defined to use full observability"
+            assert self.goal_space is not None, (
+                "The goal space must be defined to use full observability"
+            )
             goal_low = self.goal_space.low
             goal_high = self.goal_space.high
         gripper_low = -1.0
@@ -547,8 +541,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         assert len(action) == 4, f"Actions should be size 4, got {len(action)}"
         self.set_xyz_action(action[:3])
         if self.current_step >= self.max_episode_steps:
-            raise ValueError(
-                "You must reset the env manually once truncate==True")
+            raise ValueError("You must reset the env manually once truncate==True")
         self.do_simulation([action[-1], -action[-1]], n_frames=self.frame_skip)
         self.current_step += 1
 
@@ -626,11 +619,13 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         obs[18:36] = self._prev_obs
         obs = obs.astype(np.float64)
 
-        info.update({
-            "seed": self.current_seed,
-            "env_name": self.ENV_NAME,
-            "goal_observable": self._goal_observable,
-        })
+        info.update(
+            {
+                "seed": self.current_seed,
+                "env_name": self.ENV_NAME,
+                "goal_observable": self._goal_observable,
+            }
+        )
 
         return obs, info
 
@@ -688,13 +683,12 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         Returns:
             the reward value
         """
-        assert (
-            self.obj_init_pos is not None
-        ), "`obj_init_pos` must be initialized before calling this function."
+        assert self.obj_init_pos is not None, (
+            "`obj_init_pos` must be initialized before calling this function."
+        )
 
         if high_density and medium_density:
-            raise ValueError(
-                "Can only be either high_density or medium_density")
+            raise ValueError("Can only be either high_density or medium_density")
         # MARK: Left-right gripper information for caging reward----------------
         left_pad = self.get_body_com("leftpad")
         right_pad = self.get_body_com("rightpad")
@@ -757,8 +751,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         # constant (something in the 0.3 to 0.5 range) and x shrinks as the
         # gripper moves towards the object. After picking up the object, the
         # reward is maximized and changes very little
-        caging_xz_margin = np.linalg.norm(
-            self.obj_init_pos[xz] - self.init_tcp[xz])
+        caging_xz_margin = np.linalg.norm(self.obj_init_pos[xz] - self.init_tcp[xz])
         caging_xz_margin -= xz_thresh
         caging_xz = reward_utils.tolerance(
             # "x" in the description above
@@ -770,8 +763,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
 
         # MARK: Closed-extent gripper information for caging reward-------------
         gripper_closed = (
-            min(max(0, action[-1]), desired_gripper_effort) /
-            desired_gripper_effort
+            min(max(0, action[-1]), desired_gripper_effort) / desired_gripper_effort
         )
 
         # MARK: Combine components----------------------------------------------

@@ -27,6 +27,7 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
         - (6/23/20) In `reset_model`, changed `final_pos[2] -= .17` to `+= .17`
             This ensures that the target point is above the table.
     """
+
     ENV_NAME: str = "lever-pull-v3"
 
     LEVER_RADIUS = 0.2
@@ -55,8 +56,7 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -170,8 +170,7 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
 
             target = self._target_pos
             obj_to_target = float(np.linalg.norm(lever - target))
-            in_place_margin = float(np.linalg.norm(
-                self._lever_pos_init - target))
+            in_place_margin = float(np.linalg.norm(self._lever_pos_init - target))
 
             in_place = reward_utils.tolerance(
                 obj_to_target,
@@ -181,8 +180,7 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
             )
 
             # reward = 2.0 * ready_to_lift + 8.0 * lever_engagement
-            reward = 10.0 * \
-                reward_utils.hamacher_product(ready_to_lift, in_place)
+            reward = 10.0 * reward_utils.hamacher_product(ready_to_lift, in_place)
             return (
                 reward,
                 float(np.linalg.norm(shoulder_to_lever)),
@@ -195,9 +193,10 @@ class SawyerLeverPullEnvV3(SawyerXYZEnv):
 
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             pullGoal = self._target_pos

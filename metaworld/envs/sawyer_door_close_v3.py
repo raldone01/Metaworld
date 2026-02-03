@@ -37,8 +37,7 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
@@ -112,9 +111,9 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float]:
-        assert (
-            self._target_pos is not None and self.hand_init_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None and self.hand_init_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
             tcp = self.tcp_center
@@ -151,9 +150,10 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
             del actions
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             pullGoal = self._target_pos

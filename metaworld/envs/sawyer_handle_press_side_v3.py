@@ -25,6 +25,7 @@ class SawyerHandlePressSideEnvV3(SawyerXYZEnv):
         - (8/05/20) Updated to new XML
         - (6/30/20) Increased goal's Z coordinate by 0.01 in XML
     """
+
     ENV_NAME: str = "handle-press-side-v3"
 
     TARGET_RADIUS: float = 0.02
@@ -54,8 +55,7 @@ class SawyerHandlePressSideEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -126,9 +126,9 @@ class SawyerHandlePressSideEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             del actions
             obj = self._get_pos_objects()
@@ -149,8 +149,7 @@ class SawyerHandlePressSideEnvV3(SawyerXYZEnv):
 
             handle_radius = 0.02
             tcp_to_obj = float(np.linalg.norm(obj - tcp))
-            tcp_to_obj_init = np.linalg.norm(
-                self._handle_init_pos - self.init_tcp)
+            tcp_to_obj_init = np.linalg.norm(self._handle_init_pos - self.init_tcp)
             reach = reward_utils.tolerance(
                 tcp_to_obj,
                 bounds=(0, handle_radius),

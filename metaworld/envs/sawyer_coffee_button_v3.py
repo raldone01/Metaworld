@@ -43,8 +43,7 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -82,9 +81,9 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `_target_site_config`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `_target_site_config`."
+        )
         return [("coffee_goal", self._target_pos)]
 
     def _get_id_main_object(self):
@@ -125,9 +124,9 @@ class SawyerCoffeeButtonEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             del action
             obj = obs[4:7]

@@ -20,8 +20,7 @@ class SawyerRandomReachPolicy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(
-            o_d["hand_pos"], to_xyz=self._target, p=25.0)
+        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._target, p=25.0)
         action["grab_effort"] = 0.0
 
         return action.array

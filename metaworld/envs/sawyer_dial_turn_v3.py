@@ -39,8 +39,7 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         super().__init__(
             hand_low=hand_low,
@@ -81,8 +80,7 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         dial_angle_rad = self.data.joint("knob_Joint_1").qpos
 
         offset = np.array(
-            [np.sin(dial_angle_rad).item(), -
-             np.cos(dial_angle_rad).item(), 0.0]
+            [np.sin(dial_angle_rad).item(), -np.cos(dial_angle_rad).item(), 0.0]
         )
         dial_radius = 0.05
 
@@ -104,8 +102,7 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
         final_pos = goal_pos.copy() + np.array([0, 0.03, 0.03])
         self._target_pos = final_pos
         self.model.body("dial").pos = self.obj_init_pos
-        self.dial_push_position = self._get_pos_objects() + \
-            np.array([0.05, 0.02, 0.09])
+        self.dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
         self.model.site("goal").pos = self._target_pos
 
         assert self._target_pos is not None and self.obj_init_pos is not None
@@ -116,13 +113,12 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             obj = self._get_pos_objects()
-            dial_push_position = self._get_pos_objects() + \
-                np.array([0.05, 0.02, 0.09])
+            dial_push_position = self._get_pos_objects() + np.array([0.05, 0.02, 0.09])
             tcp = self.tcp_center
             target = self._target_pos.copy()
 
@@ -169,9 +165,10 @@ class SawyerDialTurnEnvV3(SawyerXYZEnv):
 
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             pullGoal = self._target_pos

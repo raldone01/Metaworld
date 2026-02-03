@@ -24,6 +24,7 @@ class SawyerWindowCloseEnvV3(SawyerXYZEnv):
             (for consistency with other environments)
         - (6/15/20) Increased the step limit from 150 to 200
     """
+
     ENV_NAME: str = "window-close-v3"
 
     TARGET_RADIUS: float = 0.05
@@ -55,8 +56,7 @@ class SawyerWindowCloseEnvV3(SawyerXYZEnv):
         self._random_reset_space = Box(
             np.array(obj_low), np.array(obj_high), dtype=np.float64
         )
-        self.goal_space = Box(np.array(goal_low), np.array(
-            goal_high), dtype=np.float64)
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
         self.maxPullDist = 0.2
         self.target_reward = 1000 * self.maxPullDist + 1000 * 2
@@ -173,9 +173,10 @@ class SawyerWindowCloseEnvV3(SawyerXYZEnv):
 
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             pullGoal = self._target_pos

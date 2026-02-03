@@ -133,7 +133,6 @@ MUJOCO_LOG.TXT
 *.orig
 .idea
 .settings
-.vscode/
 
 # MacOS
 .DS_Store
