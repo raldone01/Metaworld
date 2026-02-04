@@ -1,8 +1,10 @@
 import concurrent.futures
 import os
+from typing import cast
 
 import numpy as np
 import numpy.testing as nptest
+import numpy.typing as npt
 
 from metaworld.agent import RandomMetaworldAgent, run_agent_episode
 
@@ -33,7 +35,7 @@ def test_env_determinism_across_threads():
     num_batches = 3
 
     seeds = np.arange(num_parallel_eps)
-    all_seeds = np.tile(seeds, num_batches)
+    all_seeds: npt.NDArray[np.int_] = np.tile(seeds, num_batches)
     np.random.shuffle(all_seeds)
 
     all_futures = []
@@ -41,6 +43,7 @@ def test_env_determinism_across_threads():
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         for seed in all_seeds:
+            seed = cast(int, seed)
             fut = executor.submit(_run_episode, seed, env_name)
             batches.setdefault(seed, []).append(fut)
             all_futures.append(fut)
