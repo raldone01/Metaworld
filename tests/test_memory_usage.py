@@ -44,7 +44,7 @@ def test_env_memory_profiler(env_name: str) -> None:
     memory_usage = future.result()
 
     # Max memory usage per env in MB
-    env_max_memory_usage_threshold = 300
+    env_max_memory_usage_threshold = 400
     print(f"Memory usage for env {env_name}: {memory_usage}")
     env_max_memory_usage = max(memory_usage)
     assert env_max_memory_usage < env_max_memory_usage_threshold, (

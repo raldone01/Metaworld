@@ -5,12 +5,12 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
-from scipy.spatial.transform import Rotation
 
 from metaworld.asset_path_utils import full_V3_path_for
 from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict
 from metaworld.utils import reward_utils
+from metaworld.utils.numpy import rotation_matrix_to_quat_xyzw
 
 
 class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
@@ -104,7 +104,8 @@ class SawyerPickPlaceWallEnvV3(SawyerXYZEnv):
         return self.data.geom("objGeom").xpos
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return Rotation.from_matrix(self.data.geom("objGeom").xmat.reshape(3, 3)).as_quat()
+        geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
+        return rotation_matrix_to_quat_xyzw(geom_xmat)
 
     def adjust_initObjPos(self, orig_init_pos):
         # This is to account for meshes for the geom and object are not aligned

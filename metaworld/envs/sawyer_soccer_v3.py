@@ -5,12 +5,12 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
-from scipy.spatial.transform import Rotation
 
 from metaworld.asset_path_utils import full_V3_path_for
 from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict
 from metaworld.utils import reward_utils
+from metaworld.utils.numpy import rotation_matrix_to_quat_xyzw
 
 
 class SawyerSoccerEnvV3(SawyerXYZEnv):
@@ -91,14 +91,14 @@ class SawyerSoccerEnvV3(SawyerXYZEnv):
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
         geom_xmat = self.data.body("soccer_ball").xmat.reshape(3, 3)
-        return Rotation.from_matrix(geom_xmat).as_quat()
+        return rotation_matrix_to_quat_xyzw(geom_xmat)
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
         self._target_pos = self.goal.copy()
         self.obj_init_angle = self.init_config["obj_init_angle"]
 
-        goal_pos = self._get_state_rand_vec()
+        goal_pos: ndarray[tuple[int, ...], dtype[float64]] = self._get_state_rand_vec()
         self._target_pos = goal_pos[3:]
         while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
             goal_pos = self._get_state_rand_vec()

@@ -5,12 +5,12 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
-from scipy.spatial.transform import Rotation
 
 from metaworld.asset_path_utils import full_V3_path_for
 from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import ObservationDict, StickInitConfigDict
 from metaworld.utils import reward_utils
+from metaworld.utils.numpy import rotation_matrix_to_quat_xyzw
 
 
 class SawyerStickPullEnvV3(SawyerXYZEnv):
@@ -102,15 +102,8 @@ class SawyerStickPullEnvV3(SawyerXYZEnv):
         geom_xmat = self.data.body("stick").xmat.reshape(3, 3)
         return np.hstack(
             (
-                Rotation.from_matrix(geom_xmat).as_quat(),
-                np.array(
-                    [
-                        0.0,
-                        0.0,
-                        0.0,
-                        0.0,
-                    ]
-                ),
+                rotation_matrix_to_quat_xyzw(geom_xmat),
+                np.zeros(4),
             )
         )
 

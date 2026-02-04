@@ -420,7 +420,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         return self._target_pos
 
     def _get_curr_obs_combined_no_goal(self) -> npt.NDArray[np.float64]:
-        """Combines the end effector's {pos, closed amount} and the object(s)' {pos, quat} into a single flat observation.
+        """Combine the end effector's {pos, closed amount} and the object(s)' {pos, quat} into a single flat observation.
 
         Note: The goal's position is *not* included in this.
 

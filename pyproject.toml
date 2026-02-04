@@ -26,22 +26,27 @@ dependencies = [
     "gymnasium>=1.1",
     "mujoco>=3.0.0",
     "numpy>=1.18",
-    "scipy>=1.4.1",
     # Imageio is required by mujoco
     "imageio",
+    "numba",
 ]
 
 [dependency-groups]
 dev = ["ruff>=0.14.14", "ty>=0.0.14"]
 coverage = ["pytest-cov"]
-benchmarking = ["pyinstrument"]
-testing = ["ipdb", "memory_profiler", "pytest>=4.4.0", "pytest-xdist"]
+benchmarking = ["pyinstrument", "pytest-benchmark", "scipy"]
+testing = ["ipdb", "memory_profiler", "pytest>=4.4.0", "pytest-xdist", "scipy"]
 
 [project.urls]
 Homepage = "https://farama.org"
 Repository = "https://github.com/Farama-Foundation/Metaworld"
 Documentation = "https://metaworld.github.io/"
 "Bug Report" = "https://github.com/Farama-Foundation/Metaworld/issues"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-n auto --benchmark-disable"
+testpaths = ["tests"]
 
 [tool.setuptools]
 include-package-data = true
