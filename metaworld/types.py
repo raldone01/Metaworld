@@ -1,23 +1,10 @@
-from __future__ import annotations
-
-from typing import Any, NamedTuple, Tuple
+from typing import Any, NotRequired
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import NotRequired, TypeAlias, TypedDict
+from typing_extensions import TypedDict
 
-
-class Task(NamedTuple):
-    """All data necessary to describe a single MDP.
-
-    Should be passed into a `MetaWorldEnv`'s `set_task` method.
-    """
-
-    env_name: str
-    data: bytes  # Contains env parameters like random_init and *a* goal
-
-
-XYZ: TypeAlias = "Tuple[float, float, float]"
+type XYZ = tuple[float, float, float]
 """A 3D coordinate."""
 
 

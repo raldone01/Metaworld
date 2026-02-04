@@ -27,7 +27,7 @@ class RandomTaskSelectWrapper(gymnasium.Wrapper):
 
     def _set_random_task(self):
         task_idx = self.np_random.choice(len(self.tasks))
-        self.unwrapped.set_task(self.tasks[task_idx])
+        self.unwrapped.reset(seed=self.tasks[task_idx].env_seed)
 
     def __init__(
         self,
@@ -42,29 +42,21 @@ class RandomTaskSelectWrapper(gymnasium.Wrapper):
     def toggle_sample_tasks_on_reset(self, on: bool):
         self.sample_tasks_on_reset = on
 
-    def reset(
-        self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None
-    ):
+    def reset(self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None):
         if self.sample_tasks_on_reset:
             self._set_random_task()
         return self.env.reset(seed=seed, options=options)
 
-    def sample_tasks(
-        self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None
-    ):
+    def sample_tasks(self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None):
         self._set_random_task()
         return self.env.reset(seed=seed, options=options)
 
 
 def make_envs(benchmark: metaworld.Benchmark) -> gymnasium.vector.VectorEnv:
-    def _make_env_internal(
-        env_cls: type[metaworld.SawyerXYZEnv], env_cls_name: str
-    ) -> gymnasium.Env:
+    def _make_env_internal(env_cls: type[metaworld.SawyerXYZEnv], env_cls_name: str) -> gymnasium.Env:
         env = env_cls()
-        tasks = [
-            task for task in benchmark.train_tasks if task.env_name == env_cls_name
-        ]
-        env = gymnasium.wrappers.TimeLimit(env, env.max_path_length)  # type: ignore
+        tasks = [task for task in benchmark.train_tasks if task.env_name == env_cls_name]
+        env = gymnasium.wrappers.TimeLimit(env, env.max_episode_steps)  # type: ignore
         env = gymnasium.wrappers.RecordEpisodeStatistics(env)  # type: ignore
         env = RandomTaskSelectWrapper(env, tasks)  # type: ignore
         return env
@@ -92,7 +84,7 @@ def main() -> None:
         steps += 1
         current = time.time()
         print(
-            f"Progress: {(current - start) / BENCH_SECONDS * 100 : .2f}%, SPS: {int(steps / (current - start))}",
+            f"Progress: {(current - start) / BENCH_SECONDS * 100: .2f}%, SPS: {int(steps / (current - start))}",
             end="\r",
         )
         if current - start > BENCH_SECONDS:

@@ -8,39 +8,43 @@ name = "metaworld"
 version = "3.0.0"
 description = "Collections of robotics environments geared towards benchmarking multi-task and meta reinforcement learning."
 readme = "README.md"
-requires-python = ">= 3.10"
+requires-python = ">= 3.12"
 authors = [{ name = "Farama Foundation", email = "contact@farama.org" }]
 license = { text = "MIT License" }
 keywords = ["Reinforcement Learning", "game", "RL", "AI", "gymnasium"]
 classifiers = [
-    "Development Status :: 4 - Beta", # change to `5 - Production/Stable` when ready
+    "Development Status :: 4 - Beta",                             # change to `5 - Production/Stable` when ready
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     'Intended Audience :: Science/Research',
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
 ]
 dependencies = [
-    "gymnasium>=1.1",
-    "mujoco>=3.0.0",
-    "numpy>=1.18",
-    "scipy>=1.4.1",
-    "imageio"
+    "gymnasium>=1.2",
+    "mujoco>=3.4",
+    "numpy>=2.3",
+    # Imageio is required by mujoco
+    "imageio>=2.37",
+    "numba>=0.63.1",
 ]
 
-[project.optional-dependencies]
-# Update dependencies in `all` if any are added or removed
-testing = ["ipdb", "memory_profiler", "pyquaternion==0.9.5", "pytest>=4.4.0"]
-dev = ["black", "isort", "mypy"]
+[dependency-groups]
+dev = ["ruff>=0.14.14", "ty>=0.0.14"]
+coverage = ["pytest-cov"]
+benchmarking = ["pyinstrument", "pytest-benchmark", "scipy"]
+testing = ["ipdb", "memory_profiler", "pytest>=4.4.0", "pytest-xdist", "scipy"]
 
 [project.urls]
 Homepage = "https://farama.org"
 Repository = "https://github.com/Farama-Foundation/Metaworld"
 Documentation = "https://metaworld.github.io/"
 "Bug Report" = "https://github.com/Farama-Foundation/Metaworld/issues"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-n auto --benchmark-disable"
+testpaths = ["tests"]
 
 [tool.setuptools]
 include-package-data = true
@@ -51,19 +55,52 @@ metaworld = ["py.typed"]
 [tool.setuptools.packages.find]
 include = ["metaworld", "metaworld.*"]
 
-# Linters and Test tools #######################################################
-[tool.black]
-safe = true
+[tool.uv]
+# By default, install all dependency groups
+default-groups = "all"
 
-[tool.isort]
-atomic = true
-profile = "black"
-src_paths = ["metaworld", "tests"]
+[tool.ruff]
+line-length = 120
 
-[tool.mypy]
-plugins = ["numpy.typing.mypy_plugin"]
-exclude = ["docs"]
+[tool.ruff.lint]
+extend-select = [
+    "E501", # https://docs.astral.sh/ruff/rules/line-too-long/
+    "T100", # https://docs.astral.sh/ruff/rules/#flake8-debugger-t10
+    #"T2",   # https://docs.astral.sh/ruff/rules/#flake8-print-t20
+    "TD",  # https://docs.astral.sh/ruff/rules/#flake8-todos-td
+    "UP",  # https://docs.astral.sh/ruff/rules/#pyupgrade-up
+    "I",   # https://docs.astral.sh/ruff/rules/#isort-i
+    "N",   # https://docs.astral.sh/ruff/rules/#pep8-naming-n
+    "D",   # https://docs.astral.sh/ruff/rules/#pydocstyle-d
+    "ANN", # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
+]
+unfixable = [
+    # https://docs.astral.sh/ruff/rules/unused-import/
+    "F401",
+]
+ignore = [
+    # TODO: ENABLE AGAIN
+    # https://docs.astral.sh/ruff/rules/undocumented-public-init
+    "D107",
+    # https://docs.astral.sh/ruff/rules/missing-todo-link
+    "TD003",
+    # https://docs.astral.sh/ruff/rules/undocumented-public-module/
+    "D100",
+    # https://docs.astral.sh/ruff/rules/undocumented-public-class
+    "D101",
+    # https://docs.astral.sh/ruff/rules/undocumented-public-method
+    "D102",
+    # https://docs.astral.sh/ruff/rules/undocumented-public-function/
+    "D103",
+    # PERMANENT IGNORES
+    # https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary/
+    "D205",
+    # https://docs.astral.sh/ruff/rules/incorrect-blank-line-before-class/
+    "D203",
+    # https://docs.astral.sh/ruff/rules/multi-line-summary-second-line/
+    "D213",
 
-[[tool.mypy.overrides]]
-module = ["setuptools", "glfw", "mujoco", "memory_profiler", "scipy.*"]
-ignore_missing_imports = true
+]
+
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = ["R", "M2"]

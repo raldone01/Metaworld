@@ -1,0 +1,41 @@
+name: test
+on:
+  push:
+    branches: [fork-main]
+
+permissions:
+  # to fetch code (actions/checkout)
+  contents: read
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    outputs:
+      image-tag: metaworld-docker
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          docker build -f docker/Dockerfile \
+            --build-arg PYTHON_VERSION=${{ matrix.python-version }} \
+            --tag metaworld-docker
+
+  run-tests:
+    needs: build-image
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - run: docker run --rm metaworld-docker pytest -n auto tests/*
+
+  run-doctests:
+    needs: build-image
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - run: docker run --rm metaworld-docker pytest -n auto --doctest-modules metaworld/

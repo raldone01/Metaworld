@@ -1,18 +1,16 @@
 """Version 2 of SawyerPushWallEnv."""
 
-from __future__ import annotations
-
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
-from scipy.spatial.transform import Rotation
 
-from metaworld.asset_path_utils import full_V3_path_for
-from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.asset_path_utils import full_v3_path_for
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict
 from metaworld.utils import reward_utils
+from metaworld.utils.numpy import rotation_matrix_to_quat_xyzw
 
 
 class SawyerPushWallEnvV3(SawyerXYZEnv):
@@ -31,16 +29,13 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
 
+    env_name = "push-wall-v3"
+
     OBJ_RADIUS: float = 0.02
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -48,17 +43,6 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         obj_high = (0.05, 0.65, 0.015)
         goal_low = (-0.05, 0.85, 0.01)
         goal_high = (0.05, 0.9, 0.02)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -79,13 +63,16 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
-        self.num_resets = 0
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
     @property
-    def model_name(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_push_wall_v3.xml")
+    def model_path(self) -> str:
+        return full_v3_path_for("sawyer_xyz/sawyer_push_wall_v3.xml")
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -102,11 +89,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         success = float(obj_to_target <= 0.07)
         near_object = float(tcp_to_obj <= 0.03)
         assert self.obj_init_pos is not None
-        grasp_success = float(
-            self.touching_main_object
-            and (tcp_open > 0)
-            and (obj[2] - 0.02 > self.obj_init_pos[2])
-        )
+        grasp_success = float(self.touching_main_object and (tcp_open > 0) and (obj[2] - 0.02 > self.obj_init_pos[2]))
         info = {
             "success": success,
             "near_object": near_object,
@@ -123,14 +106,12 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
         geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
-        return Rotation.from_matrix(geom_xmat).as_quat()
+        return rotation_matrix_to_quat_xyzw(geom_xmat)
 
     def adjust_initObjPos(self, orig_init_pos: npt.NDArray[Any]) -> npt.NDArray[Any]:
         diff = self.get_body_com("obj")[:2] - self.data.geom("objGeom").xpos[:2]
         adjustedPos = orig_init_pos[:2] + diff
-        return np.array(
-            [adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]]
-        )
+        return np.array([adjustedPos[0], adjustedPos[1], self.data.geom("objGeom").xpos[-1]])
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
@@ -153,15 +134,10 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
 
         self.maxReachDist = np.linalg.norm(self.init_tcp - np.array(self._target_pos))
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -186,9 +162,7 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
 
             in_place_scaling = np.array([3.0, 1.0, 1.0])
             obj_to_midpoint = float(np.linalg.norm((obj - midpoint) * in_place_scaling))
-            obj_to_midpoint_init = float(
-                np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling)
-            )
+            obj_to_midpoint_init = float(np.linalg.norm((self.obj_init_pos - midpoint) * in_place_scaling))
 
             obj_to_target = float(np.linalg.norm(obj - target))
             obj_to_target_init = float(np.linalg.norm(self.obj_init_pos - target))
@@ -237,9 +211,10 @@ class SawyerPushWallEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             goal = self._target_pos

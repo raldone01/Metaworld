@@ -4,6 +4,7 @@ For this script to work, you need to have the PyGame window in focus.
 
 See/modify `char_to_action` to set the key-to-action mapping.
 """
+
 import sys
 
 import numpy as np
@@ -36,11 +37,8 @@ char_to_action = {
 
 
 env = SawyerPickPlaceEnvV3()
-env._partially_observable = False
-env._freeze_rand_vec = False
-env._set_task_called = True
+env._goal_observable = False
 env.reset()
-env._freeze_rand_vec = True
 lock_action = False
 random_action = False
 obs = env.reset()

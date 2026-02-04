@@ -1,28 +1,23 @@
-from __future__ import annotations
-
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.asset_path_utils import full_V3_path_for
-from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.asset_path_utils import full_v3_path_for
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import HammerInitConfigDict
 from metaworld.utils import reward_utils
 
 
 class SawyerHammerEnvV3(SawyerXYZEnv):
+    env_name = "hammer-v3"
+
     HAMMER_HANDLE_LENGTH = 0.14
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -30,17 +25,6 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
         obj_high = (0.1, 0.5, 0.0)
         goal_low = (0.2399, 0.7399, 0.109)
         goal_high = (0.2401, 0.7401, 0.111)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: HammerInitConfigDict = {
             "hammer_init_pos": np.array([0, 0.5, 0.0]),
@@ -52,16 +36,19 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
         self.hand_init_pos = self.init_config["hand_init_pos"]
         self.nail_init_pos: npt.NDArray[Any] | None = None
 
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
-    @property
-    def model_name(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_hammer.xml")
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
+    @property
+    def model_path(self) -> str:
+        return full_v3_path_for("sawyer_xyz/sawyer_hammer.xml")
+
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -89,14 +76,10 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
         return self.model.geom_name2id("HammerHandle")
 
     def _get_pos_objects(self) -> npt.NDArray[Any]:
-        return np.hstack(
-            (self.get_body_com("hammer").copy(), self.get_body_com("nail_link").copy())
-        )
+        return np.hstack((self.get_body_com("hammer").copy(), self.get_body_com("nail_link").copy()))
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return np.hstack(
-            (self.data.body("hammer").xquat, self.data.body("nail_link").xquat)
-        )
+        return np.hstack((self.data.body("hammer").xquat, self.data.body("nail_link").xquat))
 
     def _set_hammer_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.flat.copy()
@@ -194,9 +177,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
                 xz_thresh=0.01,
                 high_density=True,
             )
-            reward_in_place = SawyerHammerEnvV3._reward_pos(
-                hammer_head, self._target_pos
-            )
+            reward_in_place = SawyerHammerEnvV3._reward_pos(hammer_head, self._target_pos)
 
             reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
             # Override reward on success. We check that reward is above a threshold
@@ -217,9 +198,10 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
             hammerHeadPos = self.data.geom("HammerHead").xpos.copy()
             objPos = self.data.site("nailHead").xpos
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -240,11 +222,7 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
             else:
                 self.pickCompleted = False
 
-            objDropped = (
-                (hammerPos[2] < (self.hammerHeight + 0.005))
-                and (hammerDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (hammerPos[2] < (self.hammerHeight + 0.005)) and (hammerDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 
@@ -263,11 +241,8 @@ class SawyerHammerEnvV3(SawyerXYZEnv):
 
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:
-                hammerRew = 1000 * (
-                    self.maxHammerDist - hammerDist - screwDist
-                ) + c1 * (
-                    np.exp(-((hammerDist + screwDist) ** 2) / c2)
-                    + np.exp(-((hammerDist + screwDist) ** 2) / c3)
+                hammerRew = 1000 * (self.maxHammerDist - hammerDist - screwDist) + c1 * (
+                    np.exp(-((hammerDist + screwDist) ** 2) / c2) + np.exp(-((hammerDist + screwDist) ** 2) / c3)
                 )
                 hammerRew = max(hammerRew, 0)
             else:

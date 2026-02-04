@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Any
 
 import mujoco
@@ -7,23 +5,20 @@ import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.asset_path_utils import full_V3_path_for
-from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.asset_path_utils import full_v3_path_for
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict, ObservationDict
 from metaworld.utils.reward_utils import tolerance
 
 
 class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
+    env_name = "assembly-v3"
+
     WRENCH_HANDLE_LENGTH: float = 0.02
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -31,18 +26,6 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
         obj_high = (0, 0.6, 0.02)
         goal_low = (-0.1, 0.75, 0.1)
         goal_high = (0.1, 0.85, 0.1)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -62,11 +45,16 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
-    @property
-    def model_name(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_assembly_peg.xml")
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
+    @property
+    def model_path(self) -> str:
+        return full_v3_path_for("sawyer_xyz/sawyer_assembly_peg.xml")
+
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -92,9 +80,9 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert isinstance(
-            self._target_pos, np.ndarray
-        ), "`reset_model()` must be called before `_target_site_config` is accessed."
+        assert isinstance(self._target_pos, np.ndarray), (
+            "`reset_model()` must be called before `_target_site_config` is accessed."
+        )
         return [("pegTop", self._target_pos)]
 
     def _get_id_main_object(self) -> int:
@@ -133,9 +121,7 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
             self.placeCompleted = False
             self.maxPlacingDist = (
                 np.linalg.norm(
-                    np.array(
-                        [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                    )
+                    np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget])
                     - np.array(self._target_pos)
                 )
                 + self.heightTarget
@@ -152,9 +138,7 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
         return max(1.0 - error / 0.4, 0.0)
 
     @staticmethod
-    def _reward_pos(
-        wrench_center: npt.NDArray[Any], target_pos: npt.NDArray[Any]
-    ) -> tuple[float, bool]:
+    def _reward_pos(wrench_center: npt.NDArray[Any], target_pos: npt.NDArray[Any]) -> tuple[float, bool]:
         pos_error = target_pos - wrench_center
 
         radius = np.linalg.norm(pos_error[:2])
@@ -190,9 +174,7 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, bool]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             hand = obs[:3]
             wrench = obs[4:7]
@@ -218,9 +200,7 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
                 xz_thresh=0.01,
                 medium_density=True,
             )
-            reward_in_place, success = SawyerNutAssemblyEnvV3._reward_pos(
-                wrench_center, self._target_pos
-            )
+            reward_in_place, success = SawyerNutAssemblyEnvV3._reward_pos(wrench_center, self._target_pos)
 
             reward = (2.0 * reward_grab + 6.0 * reward_in_place) * reward_quat
             # Override reward on success
@@ -238,9 +218,10 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
             graspPos = obs[4:7]
             objPos = self.get_body_com("RoundNut")
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -269,16 +250,9 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
             else:
                 self.pickCompleted = False
 
-            objDropped = (
-                (objPos[2] < (self.obj_height + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.obj_height + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
 
-            self.placeCompleted = (
-                abs(objPos[0] - placingGoal[0]) < 0.03
-                and abs(objPos[1] - placingGoal[1]) < 0.03
-            )
+            self.placeCompleted = abs(objPos[0] - placingGoal[0]) < 0.03 and abs(objPos[1] - placingGoal[1]) < 0.03
 
             hScale = 100
             if self.placeCompleted or (self.pickCompleted and not objDropped):
@@ -299,13 +273,10 @@ class SawyerNutAssemblyEnvV3(SawyerXYZEnv):
                 c5 = 0.003
                 c6 = 0.0003
                 placeRew += 2000 * (heightTarget - placingDistFinal) + c4 * (
-                    np.exp(-(placingDistFinal**2) / c5)
-                    + np.exp(-(placingDistFinal**2) / c6)
+                    np.exp(-(placingDistFinal**2) / c5) + np.exp(-(placingDistFinal**2) / c6)
                 )
             placeRew = max(placeRew, 0)
-            cond = self.placeCompleted or (
-                self.pickCompleted and (reachDist < 0.04) and not objDropped
-            )
+            cond = self.placeCompleted or (self.pickCompleted and (reachDist < 0.04) and not objDropped)
             if cond:
                 placeRew, placingDist, placingDistFinal = [
                     placeRew,

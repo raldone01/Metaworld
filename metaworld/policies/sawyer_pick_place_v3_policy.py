@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Any
 
 import numpy as np
@@ -28,9 +26,7 @@ class SawyerPickPlaceV3Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(
-            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0
-        )
+        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0)
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array

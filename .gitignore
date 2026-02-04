@@ -84,9 +84,6 @@ target/
 profile_default/
 ipython_config.py
 
-# pyenv
-.python-version
-
 # celery beat schedule file
 celerybeat-schedule
 
@@ -133,7 +130,6 @@ MUJOCO_LOG.TXT
 *.orig
 .idea
 .settings
-.vscode/
 
 # MacOS
 .DS_Store

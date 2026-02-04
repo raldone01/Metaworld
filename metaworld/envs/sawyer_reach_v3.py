@@ -1,16 +1,14 @@
-from __future__ import annotations
-
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
-from scipy.spatial.transform import Rotation
 
-from metaworld.asset_path_utils import full_V3_path_for
-from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.asset_path_utils import full_v3_path_for
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict
 from metaworld.utils import reward_utils
+from metaworld.utils.numpy import rotation_matrix_to_quat_xyzw
 
 
 class SawyerReachEnvV3(SawyerXYZEnv):
@@ -28,14 +26,11 @@ class SawyerReachEnvV3(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
 
+    env_name = "reach-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         goal_low = (-0.1, 0.8, 0.05)
         goal_high = (0.1, 0.9, 0.3)
@@ -43,17 +38,6 @@ class SawyerReachEnvV3(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
         obj_high = (0.1, 0.7, 0.02)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -74,11 +58,16 @@ class SawyerReachEnvV3(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
-    @property
-    def model_name(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_reach_v3.xml")
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
+    @property
+    def model_path(self) -> str:
+        return full_v3_path_for("sawyer_xyz/sawyer_reach_v3.xml")
+
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -102,7 +91,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
         geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
-        return Rotation.from_matrix(geom_xmat).as_quat()
+        return rotation_matrix_to_quat_xyzw(geom_xmat)
 
     def fix_extreme_obj_pos(self, orig_init_pos: npt.NDArray[Any]) -> npt.NDArray[Any]:
         # This is to account for meshes for the geom and object are not
@@ -112,9 +101,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
         adjusted_pos = orig_init_pos[:2] + diff
         # The convention we follow is that body_com[2] is always 0,
         # and geom_pos[2] is the object height
-        return np.array(
-            [adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]]
-        )
+        return np.array([adjusted_pos[0], adjusted_pos[1], self.get_body_com("obj")[-1]])
 
     def reset_model(self) -> npt.NDArray[np.float64]:
         self._reset_hand()
@@ -137,9 +124,7 @@ class SawyerReachEnvV3(SawyerXYZEnv):
 
         return self._get_obs()
 
-    def compute_reward(
-        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
-    ) -> tuple[float, float, float]:
+    def compute_reward(self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]) -> tuple[float, float, float]:
         assert self._target_pos is not None
         if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
@@ -161,9 +146,10 @@ class SawyerReachEnvV3(SawyerXYZEnv):
 
             return (10 * in_place, tcp_to_target, in_place)
         else:
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
             goal = self._target_pos
 
@@ -179,4 +165,4 @@ class SawyerReachEnvV3(SawyerXYZEnv):
             )
             reachRew = max(reachRew, 0)
             reward = reachRew
-            return float(reward), float(reachDist), float(0.0)
+            return float(reward), float(reachDist), 0.0

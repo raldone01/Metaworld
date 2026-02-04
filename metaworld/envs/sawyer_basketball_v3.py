@@ -1,29 +1,24 @@
-from __future__ import annotations
-
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.asset_path_utils import full_V3_path_for
-from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.asset_path_utils import full_v3_path_for
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict
 from metaworld.utils import reward_utils
 
 
 class SawyerBasketballEnvV3(SawyerXYZEnv):
+    env_name = "basketball-v3"
+
     PAD_SUCCESS_MARGIN: float = 0.06
     TARGET_RADIUS: float = 0.08
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -31,17 +26,6 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
         obj_high = (0.1, 0.7, 0.0301)
         goal_low = (-0.1, 0.85, 0.0)
         goal_high = (0.1, 0.9 + 1e-7, 0.0)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -64,11 +48,16 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
             dtype=np.float64,
         )
 
-    @property
-    def model_name(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_basketball.xml")
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
+    @property
+    def model_path(self) -> str:
+        return full_v3_path_for("sawyer_xyz/sawyer_basketball.xml")
+
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -86,9 +75,7 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
         info = {
             "success": float(obj_to_target <= self.TARGET_RADIUS),
             "near_object": float(tcp_to_obj <= 0.05),
-            "grasp_success": float(
-                (tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])
-            ),
+            "grasp_success": float((tcp_open > 0) and (obj[2] - 0.03 > self.obj_init_pos[2])),
             "grasp_reward": grasp_reward,
             "in_place_reward": in_place_reward,
             "obj_to_target": obj_to_target,
@@ -127,10 +114,7 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
 
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -141,9 +125,9 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert (
-            self._target_pos is not None and self.obj_init_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None and self.obj_init_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             obj = obs[4:7]
             # Force target to be slightly above basketball hoop
@@ -175,19 +159,11 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
                 xz_thresh=0.005,
                 high_density=True,
             )
-            if (
-                tcp_to_obj < 0.035
-                and tcp_opened > 0
-                and obj[2] - 0.01 > self.obj_init_pos[2]
-            ):
+            if tcp_to_obj < 0.035 and tcp_opened > 0 and obj[2] - 0.01 > self.obj_init_pos[2]:
                 object_grasped = 1.0
             reward = reward_utils.hamacher_product(object_grasped, in_place)
 
-            if (
-                tcp_to_obj < 0.035
-                and tcp_opened > 0
-                and obj[2] - 0.01 > self.obj_init_pos[2]
-            ):
+            if tcp_to_obj < 0.035 and tcp_opened > 0 and obj[2] - 0.01 > self.obj_init_pos[2]:
                 reward += 1.0 + 5.0 * in_place
             if target_to_obj < self.TARGET_RADIUS:
                 reward = 10.0
@@ -202,9 +178,10 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -232,11 +209,7 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
             else:
                 self.pickCompleted = False
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
 
             hScale = 100
             if self.pickCompleted and not objDropped:
@@ -250,11 +223,7 @@ class SawyerBasketballEnvV3(SawyerXYZEnv):
             c2 = 0.01
             c3 = 0.001
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
 
             cond = self.pickCompleted and (reachDist < 0.1) and not objDropped
             if cond:

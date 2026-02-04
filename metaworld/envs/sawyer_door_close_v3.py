@@ -1,27 +1,22 @@
-from __future__ import annotations
-
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
-from scipy.spatial.transform import Rotation
 
-from metaworld.asset_path_utils import full_V3_path_for
-from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.asset_path_utils import full_v3_path_for
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict
 from metaworld.utils import reward_utils
+from metaworld.utils.numpy import rotation_matrix_to_quat_xyzw
 
 
 class SawyerDoorCloseEnvV3(SawyerXYZEnv):
+    env_name = "door-close-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         goal_low = (0.2, 0.65, 0.1499)
         goal_high = (0.3, 0.75, 0.1501)
@@ -29,17 +24,6 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (0.0, 0.85, 0.15)
         obj_high = (0.1, 0.95, 0.15)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -51,26 +35,29 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         self.obj_init_angle = self.init_config["obj_init_angle"]
         self.hand_init_pos = self.init_config["hand_init_pos"]
 
+        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
+
+        self._random_reset_space = Box(np.array(obj_low), np.array(obj_high), dtype=np.float64)
+
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
+
         self.door_qpos_adr = self.model.joint("doorjoint").qposadr.item()
         self.door_qvel_adr = self.model.joint("doorjoint").dofadr.item()
 
-        self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
-
-        self._random_reset_space = Box(
-            np.array(obj_low), np.array(obj_high), dtype=np.float64
-        )
-
     @property
-    def model_name(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_door_pull.xml")
+    def model_path(self) -> str:
+        return full_v3_path_for("sawyer_xyz/sawyer_door_pull.xml")
 
     def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self.data.geom("handle").xpos.copy()
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        return Rotation.from_matrix(
-            self.data.geom("handle").xmat.reshape(3, 3)
-        ).as_quat()
+        geom_xmat = self.data.geom("handle").xmat.reshape(3, 3)
+        return rotation_matrix_to_quat_xyzw(geom_xmat)
 
     def _set_obj_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.copy()
@@ -95,13 +82,10 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         self.model.site("goal").pos = self._target_pos
 
         assert self._target_pos is not None
-        self.maxPullDist = np.linalg.norm(
-            self.data.geom("handle").xpos[:-1] - self._target_pos[:-1]
-        )
+        self.maxPullDist = np.linalg.norm(self.data.geom("handle").xpos[:-1] - self._target_pos[:-1])
 
         return self._get_obs()
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -117,12 +101,10 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
         }
         return reward, info
 
-    def compute_reward(
-        self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
-    ) -> tuple[float, float, float]:
-        assert (
-            self._target_pos is not None and self.hand_init_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+    def compute_reward(self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]) -> tuple[float, float, float]:
+        assert self._target_pos is not None and self.hand_init_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             _TARGET_RADIUS: float = 0.05
             tcp = self.tcp_center
@@ -159,9 +141,10 @@ class SawyerDoorCloseEnvV3(SawyerXYZEnv):
             del actions
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             pullGoal = self._target_pos

@@ -1,29 +1,24 @@
-from __future__ import annotations
-
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
-from scipy.spatial.transform import Rotation
 
-from metaworld.asset_path_utils import full_V3_path_for
-from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.asset_path_utils import full_v3_path_for
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict
 from metaworld.utils import reward_utils
+from metaworld.utils.numpy import rotation_matrix_to_quat_xyzw
 
 
 class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
+    env_name = "sweep-into-v3"
+
     OBJ_RADIUS: float = 0.02
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -31,17 +26,6 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         obj_high = (0.1, 0.7, 0.02)
         goal_low = (-0.001, 0.8399, 0.0199)
         goal_high = (+0.001, 0.8401, 0.0201)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0.0, 0.6, 0.02]),
@@ -60,11 +44,16 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
-    @property
-    def model_name(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_table_with_hole.xml")
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
+    @property
+    def model_path(self) -> str:
+        return full_v3_path_for("sawyer_xyz/sawyer_table_with_hole.xml")
+
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -93,7 +82,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
         geom_xmat = self.data.geom("objGeom").xmat.reshape(3, 3)
-        return Rotation.from_matrix(geom_xmat).as_quat()
+        return rotation_matrix_to_quat_xyzw(geom_xmat)
 
     def _get_pos_objects(self) -> npt.NDArray[Any]:
         return self.get_body_com("obj")
@@ -114,9 +103,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         self.model.site("goal").pos = self._target_pos
 
-        self.maxPushDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 
         return self._get_obs()
 
@@ -141,12 +128,8 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         right_pad = self.get_body_com("rightpad")
         delta_object_y_left_pad = left_pad[1] - obj_pos[1]
         delta_object_y_right_pad = obj_pos[1] - right_pad[1]
-        right_caging_margin = abs(
-            abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin
-        )
-        left_caging_margin = abs(
-            abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin
-        )
+        right_caging_margin = abs(abs(obj_pos[1] - self.init_right_pad[1]) - pad_success_margin)
+        left_caging_margin = abs(abs(obj_pos[1] - self.init_left_pad[1]) - pad_success_margin)
 
         right_caging = reward_utils.tolerance(
             delta_object_y_right_pad,
@@ -189,9 +172,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
         init_obj_x_z = self.obj_init_pos + np.array([0.0, -self.obj_init_pos[1], 0.0])
         init_tcp_x_z = self.init_tcp + np.array([0.0, -self.init_tcp[1], 0.0])
 
-        tcp_obj_x_z_margin = (
-            np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
-        )
+        tcp_obj_x_z_margin = np.linalg.norm(init_obj_x_z - init_tcp_x_z, ord=2) - x_z_success_margin
         x_z_caging = reward_utils.tolerance(
             float(tcp_obj_norm_x_z),
             bounds=(0, x_z_success_margin),
@@ -239,9 +220,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
             )
 
             object_grasped = self._gripper_caging_reward(action, obj, self.OBJ_RADIUS)
-            in_place_and_object_grasped = reward_utils.hamacher_product(
-                object_grasped, in_place
-            )
+            in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place)
 
             reward = (2 * object_grasped) + (6 * in_place_and_object_grasped)
 
@@ -260,9 +239,10 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
 
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             goal = self._target_pos
@@ -277,9 +257,7 @@ class SawyerSweepIntoGoalEnvV3(SawyerXYZEnv):
 
             self.reachCompleted = reachDist < 0.05
             assert objPos is not None and self.obj_init_pos is not None
-            if (
-                objPos[-1] < self.obj_init_pos[-1] - 0.05 and 0.4 < objPos[1] < 1.0
-            ):  # ignore: type
+            if objPos[-1] < self.obj_init_pos[-1] - 0.05 and 0.4 < objPos[1] < 1.0:  # ignore: type
                 reachRew = 0.0  # type: ignore
                 reachDist = 0.0  # type: ignore
                 pushDist = 0.0  # type: ignore

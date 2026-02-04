@@ -1,3 +1,4 @@
+from metaworld.policies.policy import Policy
 from metaworld.policies.sawyer_assembly_v3_policy import SawyerAssemblyV3Policy
 from metaworld.policies.sawyer_basketball_v3_policy import SawyerBasketballV3Policy
 from metaworld.policies.sawyer_bin_picking_v3_policy import SawyerBinPickingV3Policy
@@ -73,7 +74,7 @@ from metaworld.policies.sawyer_sweep_v3_policy import SawyerSweepV3Policy
 from metaworld.policies.sawyer_window_close_v3_policy import SawyerWindowCloseV3Policy
 from metaworld.policies.sawyer_window_open_v3_policy import SawyerWindowOpenV3Policy
 
-ENV_POLICY_MAP = dict(
+ENV_POLICY_MAP: dict[str, type[Policy]] = dict(
     {
         "assembly-v3": SawyerAssemblyV3Policy,
         "basketball-v3": SawyerBasketballV3Policy,

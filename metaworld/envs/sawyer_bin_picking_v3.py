@@ -1,13 +1,11 @@
-from __future__ import annotations
-
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.asset_path_utils import full_V3_path_for
-from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.asset_path_utils import full_v3_path_for
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict
 from metaworld.utils import reward_utils
 
@@ -26,14 +24,11 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         - (11/23/20) Updated reward function to new pick-place style
     """
 
+    env_name = "bin-picking-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.07)
         hand_high = (0.5, 1, 0.5)
@@ -43,16 +38,6 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         goal_low = np.array([0.1199, 0.699, -0.001])
         goal_high = np.array([0.1201, 0.701, +0.001])
 
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
             "obj_init_pos": np.array([-0.12, 0.7, 0.02]),
@@ -68,8 +53,8 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         self.liftThresh = 0.1
 
         self.hand_and_obj_space = Box(
-            np.hstack((self.hand_low, obj_low)),
-            np.hstack((self.hand_high, obj_high)),
+            np.hstack((hand_low, obj_low)),
+            np.hstack((hand_high, obj_high)),
             dtype=np.float64,
         )
 
@@ -86,11 +71,16 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
             dtype=np.float64,
         )
 
-    @property
-    def model_name(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_bin_picking.xml")
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
+    @property
+    def model_path(self) -> str:
+        return full_v3_path_for("sawyer_xyz/sawyer_bin_picking.xml")
+
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -146,10 +136,7 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         self.heightTarget = self.objHeight + self.liftThresh
 
         self.maxPlacingDist = (
-            np.linalg.norm(
-                np.array([self.obj_init_pos[0], self.obj_init_pos[1]])
-                - np.array(self._target_pos)[:-1]
-            )
+            np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1]]) - np.array(self._target_pos)[:-1])
             + self.heightTarget
         )
 
@@ -161,9 +148,9 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[Any]
     ) -> tuple[float, bool, bool, float, float, float]:
-        assert (
-            self.obj_init_pos is not None and self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self.obj_init_pos is not None and self._target_pos is not None, (
+            "`reset_model()` must be called before `compute_reward()`."
+        )
         if self.reward_function_version == "v2":
             hand = obs[:3]
             obj = obs[4:7]
@@ -186,14 +173,7 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
             ]
             # floor is a *pair* of 3D funnels centered on (1) the object's initial
             # position and (2) the desired final position
-            floor = min(
-                [
-                    0.02 * np.log(radius - threshold) + 0.2
-                    if radius > threshold
-                    else 0.0
-                    for radius in radii
-                ]
-            )
+            floor = min([0.02 * np.log(radius - threshold) + 0.2 if radius > threshold else 0.0 for radius in radii])
             # prevent the hand from running into the edge of the bins by keeping
             # it above the "floor"
             above_floor = (
@@ -225,9 +205,7 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
             # Increase reward when properly grabbed obj
             grasp_success = near_object and lifted and not pinched_without_obj
             if grasp_success:
-                reward += 1.0 + 5.0 * reward_utils.hamacher_product(
-                    above_floor, in_place
-                )
+                reward += 1.0 + 5.0 * reward_utils.hamacher_product(above_floor, in_place)
             # Maximize reward on success
             if target_to_obj < self.TARGET_RADIUS:
                 reward = 10.0
@@ -243,9 +221,10 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -273,11 +252,7 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
             else:
                 self.pickCompleted = False
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 
@@ -317,10 +292,7 @@ class SawyerBinPickingEnvV3(SawyerXYZEnv):
                     0.0,
                 )
             elif cond:
-                if (
-                    abs(objPos[0] - placingGoal[0]) < 0.05
-                    and abs(objPos[1] - placingGoal[1]) < 0.05
-                ):
+                if abs(objPos[0] - placingGoal[0]) < 0.05 and abs(objPos[1] - placingGoal[1]) < 0.05:
                     placeRew, placingDist = [-200 * action[-1] + placeRew, placingDist]
                 else:
                     placeRew, placingDist = [placeRew, placingDist]

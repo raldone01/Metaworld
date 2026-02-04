@@ -1,7 +1,10 @@
-"""A set of reward utilities written by the authors of dm_control."""
-from __future__ import annotations
+"""A set of reward utilities written by the authors of dm_control.
 
-from typing import Any, Literal, TypeVar
+Modified by:
+- raldone01
+"""
+
+from typing import Any, Literal, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -21,11 +24,12 @@ SIGMOID_TYPE = Literal[
     "tanh_squared",
 ]
 
-X = TypeVar("X", float, npt.NDArray, np.floating)
+type floating = float | npt.NDArray | np.floating
 
 
-def _sigmoids(x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:
-    """Maps the input to values between 0 and 1 using a specified sigmoid function. Returns 1 when the input is 0, between 0 and 1 otherwise.
+def _sigmoids[X: floating](x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:
+    """Map the input to values between 0 and 1 using a specified sigmoid function.
+       Returns 1 when the input is 0, between 0 and 1 otherwise.
 
     Args:
         x: The input.
@@ -40,17 +44,14 @@ def _sigmoids(x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:
         ValueError: If not 0 < `value_at_1` < 1, except for `linear`, `cosine` and
         `quadratic` sigmoids which allow `value_at_1` == 0.
         ValueError: If `sigmoid` is of an unknown type.
+
     """
     if sigmoid in ("cosine", "linear", "quadratic"):
         if not 0 <= value_at_1 < 1:
-            raise ValueError(
-                f"`value_at_1` must be nonnegative and smaller than 1, got {value_at_1}."
-            )
+            raise ValueError(f"`value_at_1` must be nonnegative and smaller than 1, got {value_at_1}.")
     else:
         if not 0 < value_at_1 < 1:
-            raise ValueError(
-                f"`value_at_1` must be strictly between 0 and 1, got {value_at_1}."
-            )
+            raise ValueError(f"`value_at_1` must be strictly between 0 and 1, got {value_at_1}.")
 
     if sigmoid == "gaussian":
         scale = np.sqrt(-2 * np.log(value_at_1))
@@ -72,19 +73,22 @@ def _sigmoids(x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:
         scale = np.arccos(2 * value_at_1 - 1) / np.pi
         scaled_x = x * scale
         ret = np.where(abs(scaled_x) < 1, (1 + np.cos(np.pi * scaled_x)) / 2, 0.0)
-        return ret.item() if np.isscalar(x) else ret
+        ret_scalar = ret.item() if np.isscalar(x) else ret
+        return cast(X, ret_scalar)
 
     elif sigmoid == "linear":
         scale = 1 - value_at_1
         scaled_x = x * scale
         ret = np.where(abs(scaled_x) < 1, 1 - scaled_x, 0.0)
-        return ret.item() if np.isscalar(x) else ret
+        ret_scalar = ret.item() if np.isscalar(x) else ret
+        return cast(X, ret_scalar)
 
     elif sigmoid == "quadratic":
         scale = np.sqrt(1 - value_at_1)
         scaled_x = x * scale
         ret = np.where(abs(scaled_x) < 1, 1 - scaled_x**2, 0.0)
-        return ret.item() if np.isscalar(x) else ret
+        ret_scalar = ret.item() if np.isscalar(x) else ret
+        return cast(X, ret_scalar)
 
     elif sigmoid == "tanh_squared":
         scale = np.arctanh(np.sqrt(1 - value_at_1))
@@ -94,14 +98,14 @@ def _sigmoids(x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:
         raise ValueError(f"Unknown sigmoid type {sigmoid!r}.")
 
 
-def tolerance(
+def tolerance[X: floating](
     x: X,
     bounds: tuple[float, float] = (0.0, 0.0),
     margin: float | np.floating[Any] = 0.0,
     sigmoid: SIGMOID_TYPE = "gaussian",
     value_at_margin: float = _DEFAULT_VALUE_AT_MARGIN,
 ) -> X:
-    """Returns 1 when `x` falls inside the bounds, between 0 and 1 otherwise.
+    """Return 1 when `x` falls inside the bounds, between 0 and 1 otherwise.
 
     Args:
         x: The input.
@@ -127,6 +131,7 @@ def tolerance(
     Raises:
         ValueError: If `bounds[0] > bounds[1]`.
         ValueError: If `margin` is negative.
+
     """
     lower, upper = bounds
     if lower > upper:
@@ -141,16 +146,17 @@ def tolerance(
         d = np.where(x < lower, lower - x, x - upper) / margin
         value = np.where(in_bounds, 1.0, _sigmoids(d, value_at_margin, sigmoid))
 
-    return value.item() if np.isscalar(x) else value
+    ret_scalar = value.item() if np.isscalar(x) else value
+    return cast(X, ret_scalar)
 
 
-def inverse_tolerance(
+def inverse_tolerance[X: floating](
     x: X,
     bounds: tuple[float, float] = (0.0, 0.0),
     margin: float = 0.0,
     sigmoid: SIGMOID_TYPE = "reciprocal",
 ) -> X:
-    """Returns 0 when `x` falls inside the bounds, between 1 and 0 otherwise.
+    """Return 0 when `x` falls inside the bounds, between 1 and 0 otherwise.
 
     Args:
         x: The input
@@ -176,19 +182,18 @@ def inverse_tolerance(
     Raises:
         ValueError: If `bounds[0] > bounds[1]`.
         ValueError: If `margin` is negative.
+
     """
-    bound = tolerance(
-        x, bounds=bounds, margin=margin, sigmoid=sigmoid, value_at_margin=0
-    )
+    bound = tolerance(x, bounds=bounds, margin=margin, sigmoid=sigmoid, value_at_margin=0)
     return 1 - bound
 
 
 def rect_prism_tolerance(
-    curr: npt.NDArray[np.float_],
-    zero: npt.NDArray[np.float_],
-    one: npt.NDArray[np.float_],
+    curr: npt.NDArray[np.float64],
+    zero: npt.NDArray[np.float64],
+    one: npt.NDArray[np.float64],
 ) -> float:
-    """Computes a reward if curr is inside a rectangular prism region.
+    """Compute a reward if curr is inside a rectangular prism region.
 
     All inputs are 3D points with shape (3,).
 
@@ -199,15 +204,14 @@ def rect_prism_tolerance(
 
     Returns:
         A reward if curr is inside the prism, 1.0 otherwise.
+
     """
 
-    def in_range(a, b, c):
+    def in_range(a: float, b: float, c: float) -> float:
         return float(b <= a <= c) if c >= b else float(c <= a <= b)
 
     in_prism = (
-        in_range(curr[0], zero[0], one[0])
-        and in_range(curr[1], zero[1], one[1])
-        and in_range(curr[2], zero[2], one[2])
+        in_range(curr[0], zero[0], one[0]) and in_range(curr[1], zero[1], one[1]) and in_range(curr[2], zero[2], one[2])
     )
     if in_prism:
         diff = one - zero
@@ -220,7 +224,7 @@ def rect_prism_tolerance(
 
 
 def hamacher_product(a: float, b: float) -> float:
-    """Returns the hamacher (t-norm) product of a and b.
+    """Return the hamacher (t-norm) product of a and b.
 
     Computes (a * b) / ((a + b) - (a * b)).
 
@@ -233,6 +237,7 @@ def hamacher_product(a: float, b: float) -> float:
 
     Raises:
         ValueError: a and b must range between 0 and 1
+
     """
     if not ((0.0 <= a <= 1.0) and (0.0 <= b <= 1.0)):
         raise ValueError(f"a ({b}) and b ({b}) must range between 0 and 1")

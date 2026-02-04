@@ -1,27 +1,22 @@
-from __future__ import annotations
-
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
-from scipy.spatial.transform import Rotation
 
-from metaworld.asset_path_utils import full_V3_path_for
-from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.asset_path_utils import full_v3_path_for
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict
 from metaworld.utils import reward_utils
+from metaworld.utils.numpy import rotation_matrix_to_quat_xyzw
 
 
 class SawyerCoffeePullEnvV3(SawyerXYZEnv):
+    env_name = "coffee-pull-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -29,17 +24,6 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
         obj_high = (0.05, 0.75, +0.001)
         goal_low = (-0.1, 0.55, -0.001)
         goal_high = (0.1, 0.65, +0.001)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_pos": np.array([0, 0.75, 0.0]),
@@ -58,11 +42,16 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
-    @property
-    def model_name(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_coffee.xml")
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
+    @property
+    def model_path(self) -> str:
+        return full_v3_path_for("sawyer_xyz/sawyer_coffee.xml")
+
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -92,9 +81,7 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
 
     @property
     def _target_site_config(self) -> list[tuple[str, npt.NDArray[Any]]]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `_target_site_config`."
+        assert self._target_pos is not None, "`reset_model()` must be called before `_target_site_config`."
         return [("mug_goal", self._target_pos)]
 
     def _get_id_main_object(self) -> int:
@@ -105,7 +92,7 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
         geom_xmat = self.data.geom("mug").xmat.reshape(3, 3)
-        return Rotation.from_matrix(geom_xmat).as_quat()
+        return rotation_matrix_to_quat_xyzw(geom_xmat)
 
     def _set_obj_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.flatten()
@@ -130,18 +117,14 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
         self._target_pos = pos_mug_goal
         self.model.site("mug_goal").pos = self._target_pos
 
-        self.maxPullDist = np.linalg.norm(
-            self.obj_init_pos[:2] - np.array(self._target_pos)[:2]
-        )
+        self.maxPullDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
 
         return self._get_obs()
 
     def compute_reward(
         self, action: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, float, float]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             obj = obs[4:7]
             target = self._target_pos.copy()
@@ -183,16 +166,18 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
                 reward,
                 tcp_to_obj,
                 tcp_opened,
-                float(np.linalg.norm(obj - target)),  # recompute to avoid `scale` above
+                # recompute to avoid `scale` above
+                float(np.linalg.norm(obj - target)),
                 object_grasped,
                 in_place,
             )
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             goal = self._target_pos
@@ -204,9 +189,7 @@ class SawyerCoffeePullEnvV3(SawyerXYZEnv):
             reachDist = np.linalg.norm(fingerCOM - objPos)
             pullDist = np.linalg.norm(objPos[:2] - goal[:2])
             reachRew = -reachDist
-            reachDistxy = np.linalg.norm(
-                np.concatenate((objPos[:-1], np.array([self.init_tcp[-1]])))
-            )
+            reachDistxy = np.linalg.norm(np.concatenate((objPos[:-1], np.array([self.init_tcp[-1]]))))
 
             if reachDistxy < 0.05:  # 0.02
                 reachRew = -reachDist + 0.1

@@ -1,29 +1,24 @@
-from __future__ import annotations
-
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
-from scipy.spatial.transform import Rotation
 
-from metaworld.asset_path_utils import full_V3_path_for
-from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.asset_path_utils import full_v3_path_for
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict
 from metaworld.utils import reward_utils
+from metaworld.utils.numpy import rotation_matrix_to_quat_xyzw
 
 
 class SawyerPlateSlideEnvV3(SawyerXYZEnv):
+    env_name = "plate-slide-v3"
+
     OBJ_RADIUS: float = 0.04
 
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         goal_low = (-0.1, 0.85, 0.0)
         goal_high = (0.1, 0.9, 0.0)
@@ -31,17 +26,6 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (0.0, 0.6, 0.0)
         obj_high = (0.0, 0.6, 0.0)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -60,11 +44,16 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high), dtype=np.float64)
 
-    @property
-    def model_name(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_plate_slide.xml")
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
+    @property
+    def model_path(self) -> str:
+        return full_v3_path_for("sawyer_xyz/sawyer_plate_slide.xml")
+
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -96,7 +85,7 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
         geom_xmat = self.data.geom("puck").xmat.reshape(3, 3)
-        return Rotation.from_matrix(geom_xmat).as_quat()
+        return rotation_matrix_to_quat_xyzw(geom_xmat)
 
     def _set_obj_xyz(self, pos: npt.NDArray[Any]) -> None:
         qpos = self.data.qpos.flat.copy()
@@ -146,9 +135,7 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
             )
 
             tcp_to_obj = float(np.linalg.norm(tcp - obj))
-            obj_grasped_margin = float(
-                np.linalg.norm(self.init_tcp - self.obj_init_pos)
-            )
+            obj_grasped_margin = float(np.linalg.norm(self.init_tcp - self.obj_init_pos))
 
             object_grasped = reward_utils.tolerance(
                 tcp_to_obj,
@@ -157,9 +144,7 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
                 sigmoid="long_tail",
             )
 
-            in_place_and_object_grasped = reward_utils.hamacher_product(
-                object_grasped, in_place
-            )
+            in_place_and_object_grasped = reward_utils.hamacher_product(object_grasped, in_place)
             reward = 8 * in_place_and_object_grasped
 
             if obj_to_target < _TARGET_RADIUS:
@@ -177,9 +162,10 @@ class SawyerPlateSlideEnvV3(SawyerXYZEnv):
 
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             pullGoal = self._target_pos

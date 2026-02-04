@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Any
 
 import mujoco
@@ -7,21 +5,18 @@ import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.asset_path_utils import full_V3_path_for
-from metaworld.sawyer_xyz_env import RenderMode, SawyerXYZEnv
+from metaworld.asset_path_utils import full_v3_path_for
+from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict
 from metaworld.utils import reward_utils
 
 
 class SawyerBoxCloseEnvV3(SawyerXYZEnv):
+    env_name = "box-close-v3"
+
     def __init__(
         self,
-        render_mode: RenderMode | None = None,
-        camera_name: str | None = None,
-        camera_id: int | None = None,
-        reward_function_version: str = "v2",
-        height: int = 480,
-        width: int = 480,
+        **kwargs,
     ) -> None:
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
@@ -29,17 +24,6 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         obj_high = (0.05, 0.55, 0.02)
         goal_low = (-0.1, 0.7, 0.133)
         goal_high = (0.1, 0.8, 0.133)
-
-        super().__init__(
-            hand_low=hand_low,
-            hand_high=hand_high,
-            render_mode=render_mode,
-            camera_name=camera_name,
-            camera_id=camera_id,
-            height=height,
-            width=width,
-        )
-        self.reward_function_version = reward_function_version
 
         self.init_config: InitConfigDict = {
             "obj_init_angle": 0.3,
@@ -63,11 +47,16 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         self.init_obj_quat = None
         self.liftThresh = 0.12
 
-    @property
-    def model_name(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_box.xml")
+        super().__init__(
+            hand_low=hand_low,
+            hand_high=hand_high,
+            **kwargs,
+        )
 
-    @SawyerXYZEnv._Decorators.assert_task_is_set
+    @property
+    def model_path(self) -> str:
+        return full_v3_path_for("sawyer_xyz/sawyer_box.xml")
+
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, Any]]:
@@ -116,9 +105,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         self.obj_init_pos = np.concatenate([goal_pos[:2], [self.obj_init_pos[-1]]])
         self._target_pos = goal_pos[-3:]
 
-        self.model.body("boxbody").pos = np.concatenate(
-            [self._target_pos[:2], [box_height]]
-        )
+        self.model.body("boxbody").pos = np.concatenate([self._target_pos[:2], [box_height]])
 
         for _ in range(self.frame_skip):
             mujoco.mj_step(self.model, self.data)
@@ -131,10 +118,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
 
         self.maxPlacingDist = (
             np.linalg.norm(
-                np.array(
-                    [self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]
-                )
-                - np.array(self._target_pos)
+                np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._target_pos)
             )
             + self.heightTarget
         )
@@ -155,9 +139,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         return max(1.0 - error / 0.2, 0.0)
 
     @staticmethod
-    def _reward_pos(
-        obs: npt.NDArray[np.float64], target_pos: npt.NDArray[Any]
-    ) -> tuple[float, float]:
+    def _reward_pos(obs: npt.NDArray[np.float64], target_pos: npt.NDArray[Any]) -> tuple[float, float]:
         hand = obs[:3]
         lid = obs[4:7] + np.array([0.0, 0.0, 0.02])
 
@@ -206,9 +188,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
     def compute_reward(
         self, actions: npt.NDArray[Any], obs: npt.NDArray[np.float64]
     ) -> tuple[float, float, float, float, bool]:
-        assert (
-            self._target_pos is not None
-        ), "`reset_model()` must be called before `compute_reward()`."
+        assert self._target_pos is not None, "`reset_model()` must be called before `compute_reward()`."
         if self.reward_function_version == "v2":
             reward_grab = SawyerBoxCloseEnvV3._reward_grab_effort(actions)
             reward_quat = SawyerBoxCloseEnvV3._reward_quat(obs)
@@ -239,9 +219,10 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
         else:
             objPos = obs[4:7]
 
-            rightFinger, leftFinger = self._get_site_pos(
-                "rightEndEffector"
-            ), self._get_site_pos("leftEndEffector")
+            rightFinger, leftFinger = (
+                self._get_site_pos("rightEndEffector"),
+                self._get_site_pos("leftEndEffector"),
+            )
             fingerCOM = (rightFinger + leftFinger) / 2
 
             heightTarget = self.heightTarget
@@ -269,11 +250,7 @@ class SawyerBoxCloseEnvV3(SawyerXYZEnv):
             else:
                 self.pickCompleted = False
 
-            objDropped = (
-                (objPos[2] < (self.objHeight + 0.005))
-                and (placingDist > 0.02)
-                and (reachDist > 0.02)
-            )
+            objDropped = (objPos[2] < (self.objHeight + 0.005)) and (placingDist > 0.02) and (reachDist > 0.02)
             # Object on the ground, far away from the goal, and from the gripper
             # Can tweak the margin limits
 
