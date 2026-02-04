@@ -218,8 +218,8 @@ def run_agent_episode_with_env(
 
 
 def run_agent_episode(
-    env_name,
-    seed,
+    env_name: str,
+    seed: int,
     agent: MetaworldAgent,
     max_episode_steps: int,
     record_keys: set[str] | None = None,

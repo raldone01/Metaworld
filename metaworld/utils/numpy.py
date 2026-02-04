@@ -3,7 +3,7 @@ import numpy.typing as npt
 from numba import njit
 
 
-def randint(rng: np.random.Generator, size: npt.NDArray | None = None) -> np.uint32 | np.ndarray:
+def randint(rng: np.random.Generator, size: npt.NDArray | int | None = None) -> np.uint32 | np.ndarray:
     """Return a random integer from [0, 2**32 - 1] using the provided RNG."""
     return rng.integers(0, 2**32, size=size, dtype=np.uint32)
 

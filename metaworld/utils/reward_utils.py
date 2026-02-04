@@ -1,6 +1,10 @@
-"""A set of reward utilities written by the authors of dm_control."""
+"""A set of reward utilities written by the authors of dm_control.
 
-from typing import Any, Literal, TypeVar
+Modified by:
+- raldone01
+"""
+
+from typing import Any, Literal, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -20,11 +24,12 @@ SIGMOID_TYPE = Literal[
     "tanh_squared",
 ]
 
-X = TypeVar("X", float, npt.NDArray, np.floating)
+type floating = float | npt.NDArray | np.floating
 
 
-def _sigmoids(x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:
-    """Maps the input to values between 0 and 1 using a specified sigmoid function. Returns 1 when the input is 0, between 0 and 1 otherwise.
+def _sigmoids[X: floating](x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:
+    """Map the input to values between 0 and 1 using a specified sigmoid function.
+       Returns 1 when the input is 0, between 0 and 1 otherwise.
 
     Args:
         x: The input.
@@ -68,19 +73,22 @@ def _sigmoids(x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:
         scale = np.arccos(2 * value_at_1 - 1) / np.pi
         scaled_x = x * scale
         ret = np.where(abs(scaled_x) < 1, (1 + np.cos(np.pi * scaled_x)) / 2, 0.0)
-        return ret.item() if np.isscalar(x) else ret
+        ret_scalar = ret.item() if np.isscalar(x) else ret
+        return cast(X, ret_scalar)
 
     elif sigmoid == "linear":
         scale = 1 - value_at_1
         scaled_x = x * scale
         ret = np.where(abs(scaled_x) < 1, 1 - scaled_x, 0.0)
-        return ret.item() if np.isscalar(x) else ret
+        ret_scalar = ret.item() if np.isscalar(x) else ret
+        return cast(X, ret_scalar)
 
     elif sigmoid == "quadratic":
         scale = np.sqrt(1 - value_at_1)
         scaled_x = x * scale
         ret = np.where(abs(scaled_x) < 1, 1 - scaled_x**2, 0.0)
-        return ret.item() if np.isscalar(x) else ret
+        ret_scalar = ret.item() if np.isscalar(x) else ret
+        return cast(X, ret_scalar)
 
     elif sigmoid == "tanh_squared":
         scale = np.arctanh(np.sqrt(1 - value_at_1))
@@ -90,14 +98,14 @@ def _sigmoids(x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:
         raise ValueError(f"Unknown sigmoid type {sigmoid!r}.")
 
 
-def tolerance(
+def tolerance[X: floating](
     x: X,
     bounds: tuple[float, float] = (0.0, 0.0),
     margin: float | np.floating[Any] = 0.0,
     sigmoid: SIGMOID_TYPE = "gaussian",
     value_at_margin: float = _DEFAULT_VALUE_AT_MARGIN,
 ) -> X:
-    """Returns 1 when `x` falls inside the bounds, between 0 and 1 otherwise.
+    """Return 1 when `x` falls inside the bounds, between 0 and 1 otherwise.
 
     Args:
         x: The input.
@@ -138,16 +146,17 @@ def tolerance(
         d = np.where(x < lower, lower - x, x - upper) / margin
         value = np.where(in_bounds, 1.0, _sigmoids(d, value_at_margin, sigmoid))
 
-    return value.item() if np.isscalar(x) else value
+    ret_scalar = value.item() if np.isscalar(x) else value
+    return cast(X, ret_scalar)
 
 
-def inverse_tolerance(
+def inverse_tolerance[X: floating](
     x: X,
     bounds: tuple[float, float] = (0.0, 0.0),
     margin: float = 0.0,
     sigmoid: SIGMOID_TYPE = "reciprocal",
 ) -> X:
-    """Returns 0 when `x` falls inside the bounds, between 1 and 0 otherwise.
+    """Return 0 when `x` falls inside the bounds, between 1 and 0 otherwise.
 
     Args:
         x: The input
@@ -184,7 +193,7 @@ def rect_prism_tolerance(
     zero: npt.NDArray[np.float64],
     one: npt.NDArray[np.float64],
 ) -> float:
-    """Computes a reward if curr is inside a rectangular prism region.
+    """Compute a reward if curr is inside a rectangular prism region.
 
     All inputs are 3D points with shape (3,).
 
@@ -198,7 +207,7 @@ def rect_prism_tolerance(
 
     """
 
-    def in_range(a, b, c):
+    def in_range(a: float, b: float, c: float) -> float:
         return float(b <= a <= c) if c >= b else float(c <= a <= b)
 
     in_prism = (
@@ -215,7 +224,7 @@ def rect_prism_tolerance(
 
 
 def hamacher_product(a: float, b: float) -> float:
-    """Returns the hamacher (t-norm) product of a and b.
+    """Return the hamacher (t-norm) product of a and b.
 
     Computes (a * b) / ((a + b) - (a * b)).
 

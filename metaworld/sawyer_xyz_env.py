@@ -68,7 +68,7 @@ class SawyerMocapBase(MujocoEnv, ABC):
         self.frame_skip = frame_skip
 
     def get_endeff_pos(self) -> npt.NDArray[Any]:
-        """Returns the position of the end effector."""
+        """Return the position of the end effector."""
         return self.data.body("hand").xpos
 
     @property
@@ -110,7 +110,7 @@ class SawyerMocapBase(MujocoEnv, ABC):
         self.set_state(mocap_pos, mocap_quat)
 
     def __getstate__(self) -> EnvironmentStateDict:
-        """Returns the full state of the environment as a dict.
+        """Return the full state of the environment as a dict.
 
         Returns:
             A dictionary containing the env state from the `__dict__` method, the model name (path) and the mocap state `(qpos, qvel)`.
@@ -227,7 +227,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self.init_left_pad: npt.NDArray[Any] = self.get_body_com("leftpad").copy()
         self.init_right_pad: npt.NDArray[Any] = self.get_body_com("rightpad").copy()
 
-        self.action_space = Box(  # type: ignore
+        self.action_space = Box(
             np.array([-1, -1, -1, -1]),
             np.array([+1, +1, +1, +1]),
             dtype=np.float32,
@@ -261,7 +261,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
             max_episode_steps,
         )
 
-    def _seed(self, seed: int):
+    def _seed(self, seed: int) -> None:
         """Seeds the environment.
 
         Args:
@@ -278,7 +278,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self.goal_space.seed(seed)
 
     def set_xyz_action(self, action: npt.NDArray[Any]) -> None:
-        """Adjusts the position of the mocap body from the given action.
+        """Adjust the position of the mocap body from the given action.
         Moves each body axis in XYZ by the amount described by the action.
 
         Args:
@@ -297,7 +297,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self.data.mocap_quat = np.array([1, 0, 1, 0])
 
     def _set_obj_xyz(self, pos: npt.NDArray[Any]) -> None:
-        """Sets the position of the object.
+        """Set the position of the object.
 
         Args:
             pos: The position to set as a numpy array of 3 elements (XYZ value).
@@ -310,7 +310,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self.set_state(qpos, qvel)
 
     def _get_site_pos(self, site_name: str) -> npt.NDArray[np.float64]:
-        """Gets the position of a given site.
+        """Get the position of a given site.
 
         Args:
             site_name: The name of the site to get the position of.
@@ -322,7 +322,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         return self.data.site(site_name).xpos.copy()
 
     def _set_pos_site(self, name: str, pos: npt.NDArray[Any]) -> None:
-        """Sets the position of a given site.
+        """Set the position of a given site.
 
         Args:
             name: The site's name
@@ -351,7 +351,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         return self.touching_object(self._get_id_main_object())
 
     def touching_object(self, object_geom_id: int) -> bool:
-        """Determines whether the gripper is touching the object with given id.
+        """Determine whether the gripper is touching the object with given id.
 
         Args:
             object_geom_id: the ID of the object in question
@@ -385,7 +385,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         return self.data.geom("objGeom").id
 
     def _get_pos_objects(self) -> npt.NDArray[Any]:
-        """Retrieves object position(s) from mujoco properties or instance vars.
+        """Retrieve object position(s) from mujoco properties or instance vars.
 
         Returns:
             Flat array (usually 3 elements) representing the object(s)' position(s)
@@ -396,7 +396,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         raise NotImplementedError
 
     def _get_quat_objects(self) -> npt.NDArray[Any]:
-        """Retrieves object quaternion(s) from mujoco properties.
+        """Retrieve object quaternion(s) from mujoco properties.
 
         Returns:
             Flat array (usually 4 elements) representing the object(s)' quaternion(s)
@@ -407,7 +407,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         raise NotImplementedError
 
     def _get_pos_goal(self) -> npt.NDArray[Any]:
-        """Retrieves goal position from mujoco properties or instance vars.
+        """Retrieve goal position from mujoco properties or instance vars.
 
         Returns:
             Flat array (3 elements) representing the goal position
@@ -573,7 +573,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
     ) -> tuple[float, dict[str, np.float64]]:
-        """Does the heavy-lifting for `step()` -- namely, calculating reward and populating the `info` dict with training metrics.
+        """Do the heavy-lifting for `step()` -- namely, calculating reward and populating the `info` dict with training metrics.
 
         Returns:
             Tuple of reward between 0 and 10 and a dictionary which contains useful metrics (success,
@@ -594,7 +594,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
     def reset(
         self, seed: int | None = None, options: dict[str, Any] | None = None
     ) -> tuple[npt.NDArray[np.float64], dict[str, Any]]:
-        """Resets the environment.
+        """Reset the environment.
 
         Args:
             seed: The seed to use.
@@ -627,7 +627,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         return obs, info
 
     def _reset_hand(self, steps: int = 50) -> None:
-        """Resets the hand position.
+        """Reset the hand position.
 
         Args:
             steps: The number of steps to take to reset the hand.
@@ -641,7 +641,7 @@ class SawyerXYZEnv(SawyerMocapBase, EzPickle):
         self.init_tcp = self.tcp_center
 
     def _get_state_rand_vec(self) -> npt.NDArray[np.float64]:
-        """Generates a new random vector for the hand position at reset."""
+        """Generate a new random vector for the hand position at reset."""
         return self.np_random.uniform(
             self._random_reset_space.low,
             self._random_reset_space.high,

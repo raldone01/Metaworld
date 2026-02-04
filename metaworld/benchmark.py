@@ -1,9 +1,9 @@
 import copy
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any, Sequence
+from typing import Any, Literal
 
 import numpy as np
-from typing_extensions import Literal
 
 from metaworld.env_dict import (
     ML_BENCHMARKS,
@@ -25,9 +25,7 @@ _DEFAULT_NUM_TASKS_PER_ENV = 50
 
 @dataclass(frozen=True)
 class Task:
-    """
-    All data necessary to fully describe a single environment.
-    """
+    """All data necessary to fully describe a single environment."""
 
     env_name: str
     env_seed: int
@@ -35,9 +33,7 @@ class Task:
 
 @dataclass(frozen=True)
 class TaskSet:
-    """
-    A collection of tasks.
-    """
+    """A collection of tasks."""
 
     tasks_dict: dict[str, list[Task]]
     """
@@ -56,11 +52,11 @@ class TaskSet:
 
 def _generate_task_set(
     env_names: Sequence[str],
-    benchmark_seed: int | None,
+    benchmark_seed: int,
     num_tasks_per_env: int | None = _DEFAULT_NUM_TASKS_PER_ENV,
     env_kwargs_overrides: dict[str, dict] | None = None,
 ) -> TaskSet:
-    """Generates seeds for a given set of environments.
+    """Generate seeds for a given set of environments.
 
     Args:
         env_names: The environment names as a sequence of strings.
@@ -70,8 +66,8 @@ def _generate_task_set(
 
     Returns:
         A TaskSet containing all of the generated tasks.
-    """
 
+    """
     if env_kwargs_overrides is None:
         env_kwargs_overrides = {}
 
@@ -101,6 +97,8 @@ def _generate_task_set(
 
 
 class Benchmark:
+    seed: int
+
     def __init__(
         self,
         name: str,
@@ -110,13 +108,14 @@ class Benchmark:
         test_train_same_seed: bool = False,
         env_kwargs_overrides: dict[str, Any] | None = None,
         num_tasks_per_env: int | None = None,
-    ):
+    ) -> None:
         self.name = name
         self.test_env_names = test_env_names
         self.train_env_names = train_env_names
         if seed is None:
-            self.seed = randint(np.random.default_rng())
-        self.seed = seed
+            self.seed = int(randint(np.random.default_rng()))
+        else:
+            self.seed = seed
         self.test_train_same_seed = test_train_same_seed
         self.env_kwargs_overrides = env_kwargs_overrides
         self.num_tasks_per_env = num_tasks_per_env
@@ -149,7 +148,7 @@ class Benchmark:
 
 
 def get_mt1_v3_benchmark(env_name: str, seed: int | None = None, num_tasks_per_env: int | None = None) -> Benchmark:
-    """Returns the MT1 benchmark for a given environment name.
+    """Return a MT1 benchmark for a given environment name.
 
     MT1 is a goal-conditioned RL environment for a single Metaworld task.
     A fixed set of seeds is generated.
@@ -159,10 +158,11 @@ def get_mt1_v3_benchmark(env_name: str, seed: int | None = None, num_tasks_per_e
     Args:
         env_name: The name of the environment.
         seed: The random seed to use for the benchmark.
+
     Returns:
         The MT1 Benchmark.
-    """
 
+    """
     env_names = [env_name]
     return Benchmark(
         name="MT1-v3",
@@ -180,7 +180,7 @@ def get_mtX_v3_benchmark(
     seed: int | None = None,
     num_tasks_per_env: int | None = None,
 ) -> Benchmark:
-    """Returns the MTX benchmark for a given MT benchmark name.
+    """Return a MTX benchmark for a given MT benchmark name.
 
     The MTX benchmarks are multi-task RL environments for multiple Metaworld tasks.
     A fixed set of seeds is generated.
@@ -192,10 +192,11 @@ def get_mtX_v3_benchmark(
     Args:
         mt_bench: The name of the MT benchmark.
         seed: The random seed to use for the benchmark.
+
     Returns:
         The MTX Benchmark.
-    """
 
+    """
     if mt_bench not in MT_BENCHMARKS_TRAIN_ENV_NAMES:
         if mt_bench == "MT1-v3":
             raise ValueError("Use `get_mt1_v3_benchmark` to get the MT1-v3 benchmark.")
@@ -218,7 +219,7 @@ def get_mtCustom_v3_benchmark(
     seed: int | None = None,
     num_tasks_per_env: int | None = None,
 ) -> Benchmark:
-    """Returns a custom MT benchmark for a given list of environment names.
+    """Return a custom MT benchmark for a given list of environment names.
 
     The custom MT benchmark is a multi-task RL environment for multiple Metaworld tasks.
     A fixed set of seeds is generated.
@@ -228,10 +229,11 @@ def get_mtCustom_v3_benchmark(
     Args:
         env_names: The list of environment names.
         seed: The random seed to use for the benchmark.
+
     Returns:
         The custom MT Benchmark.
-    """
 
+    """
     return Benchmark(
         name="custom-mt-envs",
         train_env_names=env_names,
@@ -244,7 +246,7 @@ def get_mtCustom_v3_benchmark(
 
 
 def get_ml1_v3_benchmark(env_name: str, seed: int | None = None, num_tasks_per_env: int | None = None) -> Benchmark:
-    """Returns the ML1 benchmark for a given environment name.
+    """Return a ML1 benchmark for a given environment name.
 
     The ML1 benchmark is a goal-conditioned RL environment for a single Metaworld task.
     The train and test environments contain different sets of seeds.
@@ -254,10 +256,11 @@ def get_ml1_v3_benchmark(env_name: str, seed: int | None = None, num_tasks_per_e
     Args:
         env_name: The name of the environment.
         seed: The random seed to use for the benchmark.
+
     Returns:
         The ML1 Benchmark.
-    """
 
+    """
     env_names = [env_name]
     return Benchmark(
         name="ML1-v3",
@@ -275,7 +278,7 @@ def get_mlX_v3_benchmark(
     seed: int | None = None,
     num_tasks_per_env: int | None = None,
 ) -> Benchmark:
-    """Returns the MLX benchmark for a given ML benchmark name.
+    """Return a MLX benchmark for a given ML benchmark name.
 
     The MLX benchmarks are multi-task RL environments for multiple Metaworld tasks.
     The train and test environments contain different sets of seeds and different tasks.
@@ -286,10 +289,11 @@ def get_mlX_v3_benchmark(
     Args:
         ml_bench: The name of the ML benchmark.
         seed: The random seed to use for the benchmark.
+
     Returns:
         The MLX Benchmark.
-    """
 
+    """
     if ml_bench not in ML_BENCHMARKS:
         if ml_bench == "ML1-v3":
             raise ValueError("Use `get_ml1_v3_benchmark` to get the ML1 benchmark.")
@@ -313,7 +317,7 @@ def get_mlCustom_v3_benchmark(
     seed: int | None = None,
     num_tasks_per_env: int | None = None,
 ) -> Benchmark:
-    """Returns a custom ML benchmark for given lists of training and testing environment names.
+    """Return a custom ML benchmark for given lists of training and testing environment names.
 
     The custom ML benchmark is a multi-task RL environment for multiple Metaworld tasks.
     The train and test environments contain different sets of seeds and different tasks.
@@ -323,10 +327,11 @@ def get_mlCustom_v3_benchmark(
         train_envs: The list of training environment names.
         test_envs: The list of testing environment names.
         seed: The random seed to use for the benchmark.
+
     Returns:
         The custom ML Benchmark.
-    """
 
+    """
     return Benchmark(
         name="custom-ml-envs",
         train_env_names=train_env_names,

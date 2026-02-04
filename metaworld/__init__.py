@@ -114,7 +114,7 @@ def _vectorize_task_set(
     meta_batch_size: int | None = None,
     vector_strategy: Literal["sync", "async"] | type[gym.vector.VectorEnv] | None = None,
     autoreset_mode: gym.vector.AutoresetMode | str = gym.vector.AutoresetMode.SAME_STEP,
-    **kwargs,
+    **kwargs: dict[str, Any],
 ) -> gym.vector.VectorEnv:
     num_env_ids = len(task_set.env_names)
 
@@ -164,7 +164,7 @@ def _vectorize_task_set(
 
 def _use_one_hot_guard(
     use_one_hot: bool,
-):
+) -> None:
     if use_one_hot:
         raise ValueError("The one-hot wrapper can only be used with the MTX/MTCustom benchmarks except MT1.")
 
@@ -174,8 +174,8 @@ def _mt1_entry_point(
     seed: int | None = None,
     num_tasks_per_env: int | None = None,
     use_one_hot: bool = False,
-    **kwargs,
-):
+    **kwargs: dict[str, Any],
+) -> gym.Env:
     _use_one_hot_guard(use_one_hot)
 
     mt1_benchmark = get_mt1_v3_benchmark(
@@ -200,8 +200,8 @@ def _mt_x_vector_entry_point(
     mt_bench: MTXv3Benchmarks,
     seed: int | None = None,
     num_tasks_per_env: int | None = None,
-    **kwargs,
-) -> gym.Env | gym.vector.VectorEnv:
+    **kwargs: dict[str, Any],
+) -> gym.vector.VectorEnv:
     mt_x_benchmark = get_mtX_v3_benchmark(
         mt_bench,
         seed,
@@ -212,7 +212,7 @@ def _mt_x_vector_entry_point(
 
     return _vectorize_task_set(
         task_set,
-        **kwargs,
+        **kwargs,  # ty:ignore[invalid-argument-type]
     )
 
 
@@ -220,8 +220,8 @@ def _mt_custom_vector_entry_point(
     train_env_names: list[str],
     seed: int | None = None,
     num_tasks_per_env: int | None = None,
-    **kwargs,
-) -> gym.Env | gym.vector.VectorEnv:
+    **kwargs: dict[str, Any],
+) -> gym.vector.VectorEnv:
     mt_x_benchmark = get_mtCustom_v3_benchmark(
         train_env_names,
         seed,
@@ -232,7 +232,7 @@ def _mt_custom_vector_entry_point(
 
     return _vectorize_task_set(
         task_set,
-        **kwargs,
+        **kwargs,  # ty:ignore[invalid-argument-type]
     )
 
 
@@ -242,8 +242,8 @@ def _ml1_vector_entry_point(
     split: Literal["train", "test"] = "train",
     num_tasks_per_env: int | None = None,
     use_one_hot: bool = False,
-    **kwargs,
-):
+    **kwargs: dict[str, Any],
+) -> gym.vector.VectorEnv:
     _use_one_hot_guard(use_one_hot)
 
     ml1_benchmark = get_ml1_v3_benchmark(
@@ -256,7 +256,7 @@ def _ml1_vector_entry_point(
 
     return _vectorize_task_set(
         task_set,
-        **kwargs,
+        **kwargs,  # ty:ignore[invalid-argument-type]
     )
 
 
@@ -266,8 +266,8 @@ def _ml_x_vector_entry_point(
     split: Literal["train", "test"] = "train",
     num_tasks_per_env: int | None = None,
     use_one_hot: bool = False,
-    **kwargs,
-):
+    **kwargs: dict[str, Any],
+) -> gym.vector.VectorEnv:
     _use_one_hot_guard(use_one_hot)
 
     ml_x_benchmark = get_mlX_v3_benchmark(
@@ -280,7 +280,7 @@ def _ml_x_vector_entry_point(
 
     return _vectorize_task_set(
         task_set,
-        **kwargs,
+        **kwargs,  # ty:ignore[invalid-argument-type]
     )
 
 
@@ -291,8 +291,8 @@ def _ml_custom_vector_entry_point(
     split: Literal["train", "test"] = "train",
     num_tasks_per_env: int | None = None,
     use_one_hot: bool = False,
-    **kwargs,
-):
+    **kwargs: dict[str, Any],
+) -> gym.vector.VectorEnv:
     _use_one_hot_guard(use_one_hot)
 
     ml_x_benchmark = get_mlCustom_v3_benchmark(
@@ -306,7 +306,7 @@ def _ml_custom_vector_entry_point(
 
     return _vectorize_task_set(
         task_set,
-        **kwargs,
+        **kwargs,  # ty:ignore[invalid-argument-type]
     )
 
 

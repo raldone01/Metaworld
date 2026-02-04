@@ -79,23 +79,28 @@ unfixable = [
     "F401",
 ]
 ignore = [
-    # https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function/
-    "ANN201",
-    # https://docs.astral.sh/ruff/rules/undocumented-public-function/
-    "D103",
-    # https://docs.astral.sh/ruff/rules/undocumented-public-module/
-    "D100",
-    # https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary/
-    "D205",
-    # https://docs.astral.sh/ruff/rules/missing-todo-link
-    "TD003",
+    # TODO: ENABLE AGAIN
     # https://docs.astral.sh/ruff/rules/undocumented-public-init
     "D107",
+    # https://docs.astral.sh/ruff/rules/missing-todo-link
+    "TD003",
+    # https://docs.astral.sh/ruff/rules/undocumented-public-module/
+    "D100",
+    # https://docs.astral.sh/ruff/rules/undocumented-public-class
+    "D101",
+    # https://docs.astral.sh/ruff/rules/undocumented-public-method
+    "D102",
+    # https://docs.astral.sh/ruff/rules/undocumented-public-function/
+    "D103",
+    # PERMANENT IGNORES
+    # https://docs.astral.sh/ruff/rules/missing-blank-line-after-summary/
+    "D205",
     # https://docs.astral.sh/ruff/rules/incorrect-blank-line-before-class/
     "D203",
     # https://docs.astral.sh/ruff/rules/multi-line-summary-second-line/
     "D213",
+
 ]
 
 [tool.ruff.lint.pep8-naming]
-extend-ignore-names = ["R"]
+extend-ignore-names = ["R", "M2"]

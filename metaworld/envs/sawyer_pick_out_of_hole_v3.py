@@ -4,7 +4,7 @@ import numpy as np
 import numpy.typing as npt
 from gymnasium.spaces import Box
 
-from metaworld.asset_path_utils import full_V3_path_for
+from metaworld.asset_path_utils import full_v3_path_for
 from metaworld.sawyer_xyz_env import SawyerXYZEnv
 from metaworld.types import InitConfigDict
 from metaworld.utils import reward_utils
@@ -51,7 +51,7 @@ class SawyerPickOutOfHoleEnvV3(SawyerXYZEnv):
 
     @property
     def model_path(self) -> str:
-        return full_V3_path_for("sawyer_xyz/sawyer_pick_out_of_hole.xml")
+        return full_v3_path_for("sawyer_xyz/sawyer_pick_out_of_hole.xml")
 
     def evaluate_state(
         self, obs: npt.NDArray[np.float64], action: npt.NDArray[np.float32]
