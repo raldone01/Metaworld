@@ -1,10 +1,10 @@
-from typing import Any, Tuple
+from typing import Any, NotRequired
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import NotRequired, TypeAlias, TypedDict
+from typing_extensions import TypedDict
 
-XYZ: TypeAlias = "Tuple[float, float, float]"
+type XYZ = tuple[float, float, float]
 """A 3D coordinate."""
 
 

@@ -3,7 +3,7 @@
 import copy
 from abc import ABC, abstractmethod
 from functools import cached_property
-from typing import Any, Literal, TypeAlias
+from typing import Any, Literal
 
 import mujoco
 import numpy as np
@@ -16,7 +16,7 @@ from metaworld.types import XYZ, EnvironmentStateDict, ObservationDict
 from metaworld.utils import reward_utils
 from metaworld.utils.numpy import randint
 
-RenderMode: TypeAlias = "Literal['human', 'rgb_array', 'depth_array']"
+type RenderMode = Literal["human", "rgb_array", "depth_array"]
 
 
 class SawyerMocapBase(MujocoEnv, ABC):
