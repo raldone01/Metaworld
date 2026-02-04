@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import base64
 from dataclasses import asdict
 
@@ -45,9 +43,7 @@ def _serialize_task(task: Task) -> dict:
 def _deserialize_task(task_dict: dict[str, str]) -> Task:
     assert "env_name" in task_dict and "data" in task_dict
 
-    return Task(
-        env_name=task_dict["env_name"], data=base64.b64decode(task_dict["data"])
-    )
+    return Task(env_name=task_dict["env_name"], data=base64.b64decode(task_dict["data"]))
 
 
 class RNNBasedMetaRLWrapper(gym.Wrapper):
@@ -85,9 +81,7 @@ class RNNBasedMetaRLWrapper(gym.Wrapper):
     def reset(self, *, seed: int | None = None, options: dict | None = None):
         assert isinstance(self.env.action_space, gym.spaces.Box)
         obs, info = self.env.reset(seed=seed, options=options)
-        recurrent_obs = np.concatenate(
-            [obs, np.zeros(self.env.action_space.shape), [0.0], [0.0]]
-        )
+        recurrent_obs = np.concatenate([obs, np.zeros(self.env.action_space.shape), [0.0], [0.0]])
         return recurrent_obs, info
 
 
@@ -126,9 +120,7 @@ class RandomTaskSelectWrapper(gym.Wrapper):
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
         if seed is not None:
-            raise NotImplementedError(
-                "Seeding is not supported when using RandomTaskSelectWrapper."
-            )
+            raise NotImplementedError("Seeding is not supported when using RandomTaskSelectWrapper.")
         if self.sample_tasks_on_reset:
             self._set_random_task()
         return self.env.reset(seed=None, options=options)
@@ -195,9 +187,7 @@ class PseudoRandomTaskSelectWrapper(gym.Wrapper):
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
         if seed is not None:
-            raise NotImplementedError(
-                "Seeding is not supported when using PseudoRandomTaskSelectWrapper."
-            )
+            raise NotImplementedError("Seeding is not supported when using PseudoRandomTaskSelectWrapper.")
         if self.sample_tasks_on_reset:
             self._set_pseudo_random_task()
         return self.env.reset(seed=None, options=options)
@@ -260,12 +250,8 @@ class NormalizeRewardsExponential(gym.Wrapper):
         self._reward_var = 1.0
 
     def _update_reward_estimate(self, reward):
-        self._reward_mean = (
-            1 - self._reward_alpha
-        ) * self._reward_mean + self._reward_alpha * reward
-        self._reward_var = (
-            1 - self._reward_alpha
-        ) * self._reward_var + self._reward_alpha * np.square(
+        self._reward_mean = (1 - self._reward_alpha) * self._reward_mean + self._reward_alpha * reward
+        self._reward_var = (1 - self._reward_alpha) * self._reward_var + self._reward_alpha * np.square(
             reward - self._reward_mean
         )
 
@@ -280,9 +266,7 @@ class NormalizeRewardsExponential(gym.Wrapper):
         return next_obs, reward, terminate, truncate, info
 
 
-def update_mean_var_count_from_moments(
-    mean, var, count, batch_mean, batch_var, batch_count
-):
+def update_mean_var_count_from_moments(mean, var, count, batch_mean, batch_var, batch_count):
     delta = batch_mean - mean
     tot_count = count + batch_count
     new_mean = mean + delta * batch_count / tot_count
@@ -305,9 +289,7 @@ class CheckpointWrapper(gym.Wrapper):
     def __init__(self, env: gym.Env, env_id: str):
         super().__init__(env)
         assert hasattr(self.env, "get_checkpoint") and callable(self.env.get_checkpoint)
-        assert hasattr(self.env, "load_checkpoint") and callable(
-            self.env.load_checkpoint
-        )
+        assert hasattr(self.env, "load_checkpoint") and callable(self.env.load_checkpoint)
         self.env_id = env_id
 
     def get_checkpoint(self) -> tuple[str, dict]:

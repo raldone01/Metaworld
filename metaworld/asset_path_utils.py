@@ -1,7 +1,5 @@
 """Set of utilities for retrieving asset paths for the environments."""
 
-from __future__ import annotations
-
 from pathlib import Path
 
 _CURRENT_FILE_DIR = Path(__file__).parent.absolute()

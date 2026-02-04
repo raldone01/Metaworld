@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Any
 
 import numpy as np
@@ -27,9 +25,7 @@ class SawyerShelfPlaceV3Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_effort": 3})
 
-        action["delta_pos"] = move(
-            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0
-        )
+        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=25.0)
         action["grab_effort"] = self._grab_effort(o_d)
 
         return action.array
@@ -62,10 +58,7 @@ class SawyerShelfPlaceV3Policy(Policy):
         pos_curr = o_d["hand_pos"]
         pos_block = o_d["block_pos"]
 
-        if (
-            np.linalg.norm(pos_curr[:2] - pos_block[:2]) > 0.04
-            or abs(pos_curr[2] - pos_block[2]) > 0.15
-        ):
+        if np.linalg.norm(pos_curr[:2] - pos_block[:2]) > 0.04 or abs(pos_curr[2] - pos_block[2]) > 0.15:
             return -1.0
         else:
             return 0.7

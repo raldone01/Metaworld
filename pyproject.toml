@@ -8,7 +8,7 @@ name = "metaworld"
 version = "3.0.0"
 description = "Collections of robotics environments geared towards benchmarking multi-task and meta reinforcement learning."
 readme = "README.md"
-requires-python = ">= 3.10"
+requires-python = ">= 3.12"
 authors = [{ name = "Farama Foundation", email = "contact@farama.org" }]
 license = { text = "MIT License" }
 keywords = ["Reinforcement Learning", "game", "RL", "AI", "gymnasium"]
@@ -16,19 +16,17 @@ classifiers = [
     "Development Status :: 4 - Beta",                             # change to `5 - Production/Stable` when ready
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     'Intended Audience :: Science/Research',
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
 ]
 dependencies = [
-    "gymnasium>=1.1",
-    "mujoco>=3.0.0",
-    "numpy>=1.18",
+    "gymnasium>=1.2",
+    "mujoco>=3.4",
+    "numpy>=2.3",
     # Imageio is required by mujoco
-    "imageio",
-    "numba",
+    "imageio>=2.37",
+    "numba>=0.63.1",
 ]
 
 [dependency-groups]
@@ -93,6 +91,10 @@ ignore = [
     "TD003",
     # https://docs.astral.sh/ruff/rules/undocumented-public-init
     "D107",
+    # https://docs.astral.sh/ruff/rules/incorrect-blank-line-before-class/
+    "D203",
+    # https://docs.astral.sh/ruff/rules/multi-line-summary-second-line/
+    "D213",
 ]
 
 [tool.ruff.lint.pep8-naming]

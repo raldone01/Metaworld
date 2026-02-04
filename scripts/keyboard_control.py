@@ -4,6 +4,7 @@ For this script to work, you need to have the PyGame window in focus.
 
 See/modify `char_to_action` to set the key-to-action mapping.
 """
+
 import sys
 
 import numpy as np

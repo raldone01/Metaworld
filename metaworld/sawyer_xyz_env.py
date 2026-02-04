@@ -1,7 +1,5 @@
 """Base classes for all the envs."""
 
-from __future__ import annotations
-
 import copy
 from abc import ABC, abstractmethod
 from functools import cached_property

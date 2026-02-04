@@ -33,9 +33,7 @@ def test_env_mt1_single_seed(env_name: str):
         record_keys=record_keys,
     )
     # Verify that for the num_tasks_per_env=1 and MT1 env the seed is the same as the one passed
-    assert first_ep["env_seed"] == seed, (
-        f"Env seed {first_ep['env_seed']} does not match passed seed {seed}"
-    )
+    assert first_ep["env_seed"] == seed, f"Env seed {first_ep['env_seed']} does not match passed seed {seed}"
 
     # Reset the env and run everything again
     second_ep = run_agent_episode_with_env(
@@ -45,9 +43,7 @@ def test_env_mt1_single_seed(env_name: str):
         record_keys=record_keys,
     )
     # Verify that the seed is still the same
-    assert second_ep["env_seed"] == seed, (
-        f"Env seed {second_ep['env_seed']} does not match passed seed {seed}"
-    )
+    assert second_ep["env_seed"] == seed, f"Env seed {second_ep['env_seed']} does not match passed seed {seed}"
 
     env.close()
 
@@ -67,9 +63,7 @@ def test_env_mt1_single_seed(env_name: str):
         seed=seed,
     )
     # Verify that the seed is still the same
-    assert third_ep["env_seed"] == seed, (
-        f"Env seed {third_ep['env_seed']} does not match passed seed {seed}"
-    )
+    assert third_ep["env_seed"] == seed, f"Env seed {third_ep['env_seed']} does not match passed seed {seed}"
 
     obs_third = third_ep["observations"]
     assert np.array_equal(np.array(obs_first), np.array(obs_third)), (

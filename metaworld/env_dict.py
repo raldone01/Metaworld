@@ -2,8 +2,6 @@
 and organising them into various collections and splits for the benchmarks.
 """
 
-from __future__ import annotations
-
 from collections import OrderedDict
 from typing import Literal
 

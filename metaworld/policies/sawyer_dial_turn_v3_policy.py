@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Any
 
 import numpy as np
@@ -25,9 +23,7 @@ class SawyerDialTurnV3Policy(Policy):
 
         action = Action({"delta_pos": np.arange(3), "grab_pow": 3})
 
-        action["delta_pos"] = move(
-            o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0
-        )
+        action["delta_pos"] = move(o_d["hand_pos"], to_xyz=self._desired_pos(o_d), p=10.0)
         action["grab_pow"] = 1.0
 
         return action.array

@@ -79,8 +79,7 @@ html_theme_options = {
     "dark_logo": "img/metaworld_white.svg",
     "gtag": "",
     "description": (
-        "Collections of robotics environments geared towards "
-        "benchmarking multi-task and meta reinforcement learning"
+        "Collections of robotics environments geared towards benchmarking multi-task and meta reinforcement learning"
     ),
     "image": "img/metaworld_black-github.png",
     "versioning": True,

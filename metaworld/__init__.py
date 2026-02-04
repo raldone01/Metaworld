@@ -1,7 +1,5 @@
 """The public-facing Metaworld API."""
 
-from __future__ import annotations
-
 from functools import partial
 from typing import Any, Literal
 
@@ -49,8 +47,7 @@ def _init_env_with_wrappers(
     normalize_reward_in_recurrent_info: bool = True,
     task_sampler: Literal["random", "pseudorandom"] = "random",
     sample_tasks_on_reset: bool = True,
-    reward_normalization_method: Literal["gymnasium", "exponential"]
-    | None = None,
+    reward_normalization_method: Literal["gymnasium", "exponential"] | None = None,
     normalize_observations: bool = False,
     reward_alpha: float = 0.001,
     num_envs: int | None = None,
@@ -76,14 +73,10 @@ def _init_env_with_wrappers(
     env.toggle_terminate_on_success(terminate_on_success)
     if use_one_hot:
         if env_id is None or num_env_ids is None:
-            raise ValueError(
-                "env_id and num_env_ids must be provided when using one-hot encoding."
-            )
+            raise ValueError("env_id and num_env_ids must be provided when using one-hot encoding.")
         env = OneHotWrapper(env, env_id, num_env_ids)
     if recurrent_info_in_obs:
-        env = RNNBasedMetaRLWrapper(
-            env, normalize_reward=normalize_reward_in_recurrent_info
-        )
+        env = RNNBasedMetaRLWrapper(env, normalize_reward=normalize_reward_in_recurrent_info)
     if reward_normalization_method == "gymnasium":
         env = gym.wrappers.NormalizeReward(env)
     elif reward_normalization_method == "exponential":
@@ -97,18 +90,14 @@ def _init_env_with_wrappers(
     elif task_sampler == "random":
         env = RandomTaskSelectWrapper(env, tasks, sample_tasks_on_reset)
     else:
-        raise ValueError(
-            f"Invalid task_sampler option: {task_sampler}. Must be 'random' or 'pseudorandom'."
-        )
+        raise ValueError(f"Invalid task_sampler option: {task_sampler}. Must be 'random' or 'pseudorandom'.")
 
     env = CheckpointWrapper(env, f"{env_cls}_{env_id}")
     return env
 
 
 def _vectorizer_from_strategy(
-    vector_strategy: Literal["sync", "async"]
-    | type[gym.vector.VectorEnv]
-    | None = None,
+    vector_strategy: Literal["sync", "async"] | type[gym.vector.VectorEnv] | None = None,
 ) -> type[gym.vector.SyncVectorEnv] | type[gym.vector.AsyncVectorEnv]:
     vectorizer: type[gym.vector.VectorEnv]
     if vector_strategy == "sync" or vector_strategy is None:
@@ -123,11 +112,8 @@ def _vectorizer_from_strategy(
 def _vectorize_task_set(
     task_set: TaskSet,
     meta_batch_size: int | None = None,
-    vector_strategy: Literal["sync", "async"]
-    | type[gym.vector.VectorEnv]
-    | None = None,
-    autoreset_mode: gym.vector.AutoresetMode
-    | str = gym.vector.AutoresetMode.SAME_STEP,
+    vector_strategy: Literal["sync", "async"] | type[gym.vector.VectorEnv] | None = None,
+    autoreset_mode: gym.vector.AutoresetMode | str = gym.vector.AutoresetMode.SAME_STEP,
     **kwargs,
 ) -> gym.vector.VectorEnv:
     num_env_ids = len(task_set.env_names)
@@ -135,9 +121,7 @@ def _vectorize_task_set(
     if meta_batch_size is None:
         meta_batch_size = num_env_ids
 
-    assert meta_batch_size % len(task_set.env_names) == 0, (
-        "meta_batch_size must be divisible by the environment count"
-    )
+    assert meta_batch_size % len(task_set.env_names) == 0, "meta_batch_size must be divisible by the environment count"
     tasks_per_env = meta_batch_size // len(task_set.env_names)
 
     tasks_per_parallel_env = []
@@ -145,9 +129,7 @@ def _vectorize_task_set(
         # Filter tasks for this env name
         tasks = task_set.tasks_dict[env_name]
         # Split tasks into `tasks_per_env` sublists
-        subenv_tasks = [
-            tasks[i::tasks_per_env] for i in range(0, tasks_per_env)
-        ]
+        subenv_tasks = [tasks[i::tasks_per_env] for i in range(0, tasks_per_env)]
         for tasks_for_subenv in subenv_tasks:
             assert len(tasks_for_subenv) == len(tasks) // tasks_per_env, (
                 f"Invalid division of subtasks, expected {len(tasks) // tasks_per_env} got {len(tasks_for_subenv)}"
@@ -184,9 +166,7 @@ def _use_one_hot_guard(
     use_one_hot: bool,
 ):
     if use_one_hot:
-        raise ValueError(
-            "The one-hot wrapper can only be used with the MTX/MTCustom benchmarks except MT1."
-        )
+        raise ValueError("The one-hot wrapper can only be used with the MTX/MTCustom benchmarks except MT1.")
 
 
 def _mt1_entry_point(
@@ -349,9 +329,7 @@ def _register_mw_envs() -> None:
 
     register(
         id="Meta-World/MTCustom-v3",
-        vector_entry_point=lambda **kwargs: _mt_custom_vector_entry_point(
-            **kwargs
-        ),
+        vector_entry_point=lambda **kwargs: _mt_custom_vector_entry_point(**kwargs),
     )
 
     # --- ML Envs ---
@@ -372,9 +350,7 @@ def _register_mw_envs() -> None:
 
     register(
         id="Meta-World/MLCustom-v3",
-        vector_entry_point=lambda **kwargs: _ml_custom_vector_entry_point(
-            **kwargs
-        ),
+        vector_entry_point=lambda **kwargs: _ml_custom_vector_entry_point(**kwargs),
     )
 
 

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import copy
 from dataclasses import dataclass
 from typing import Any, Sequence
@@ -87,11 +85,7 @@ def _generate_task_set(
         for env_name in env_names:
             tasks_dict[env_name].append(Task(env_name, benchmark_seed))
     else:
-        seed_rng = (
-            np.random.default_rng(benchmark_seed)
-            if benchmark_seed is not None
-            else np.random.default_rng()
-        )
+        seed_rng = np.random.default_rng(benchmark_seed) if benchmark_seed is not None else np.random.default_rng()
 
         for env_name in env_names:
             seeds = np.atleast_1d(randint(seed_rng, size=num_tasks_per_env))
@@ -154,9 +148,7 @@ class Benchmark:
         return self.generate_task_set(split="test")
 
 
-def get_mt1_v3_benchmark(
-    env_name: str, seed: int | None = None, num_tasks_per_env: int | None = None
-) -> Benchmark:
+def get_mt1_v3_benchmark(env_name: str, seed: int | None = None, num_tasks_per_env: int | None = None) -> Benchmark:
     """Returns the MT1 benchmark for a given environment name.
 
     MT1 is a goal-conditioned RL environment for a single Metaworld task.
@@ -251,9 +243,7 @@ def get_mtCustom_v3_benchmark(
     )
 
 
-def get_ml1_v3_benchmark(
-    env_name: str, seed: int | None = None, num_tasks_per_env: int | None = None
-) -> Benchmark:
+def get_ml1_v3_benchmark(env_name: str, seed: int | None = None, num_tasks_per_env: int | None = None) -> Benchmark:
     """Returns the ML1 benchmark for a given environment name.
 
     The ML1 benchmark is a goal-conditioned RL environment for a single Metaworld task.

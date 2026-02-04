@@ -1,7 +1,5 @@
 """A set of reward utilities written by the authors of dm_control."""
 
-from __future__ import annotations
-
 from typing import Any, Literal, TypeVar
 
 import numpy as np
@@ -41,17 +39,14 @@ def _sigmoids(x: X, value_at_1: float, sigmoid: SIGMOID_TYPE) -> X:
         ValueError: If not 0 < `value_at_1` < 1, except for `linear`, `cosine` and
         `quadratic` sigmoids which allow `value_at_1` == 0.
         ValueError: If `sigmoid` is of an unknown type.
+
     """
     if sigmoid in ("cosine", "linear", "quadratic"):
         if not 0 <= value_at_1 < 1:
-            raise ValueError(
-                f"`value_at_1` must be nonnegative and smaller than 1, got {value_at_1}."
-            )
+            raise ValueError(f"`value_at_1` must be nonnegative and smaller than 1, got {value_at_1}.")
     else:
         if not 0 < value_at_1 < 1:
-            raise ValueError(
-                f"`value_at_1` must be strictly between 0 and 1, got {value_at_1}."
-            )
+            raise ValueError(f"`value_at_1` must be strictly between 0 and 1, got {value_at_1}.")
 
     if sigmoid == "gaussian":
         scale = np.sqrt(-2 * np.log(value_at_1))
@@ -128,6 +123,7 @@ def tolerance(
     Raises:
         ValueError: If `bounds[0] > bounds[1]`.
         ValueError: If `margin` is negative.
+
     """
     lower, upper = bounds
     if lower > upper:
@@ -177,10 +173,9 @@ def inverse_tolerance(
     Raises:
         ValueError: If `bounds[0] > bounds[1]`.
         ValueError: If `margin` is negative.
+
     """
-    bound = tolerance(
-        x, bounds=bounds, margin=margin, sigmoid=sigmoid, value_at_margin=0
-    )
+    bound = tolerance(x, bounds=bounds, margin=margin, sigmoid=sigmoid, value_at_margin=0)
     return 1 - bound
 
 
@@ -200,15 +195,14 @@ def rect_prism_tolerance(
 
     Returns:
         A reward if curr is inside the prism, 1.0 otherwise.
+
     """
 
     def in_range(a, b, c):
         return float(b <= a <= c) if c >= b else float(c <= a <= b)
 
     in_prism = (
-        in_range(curr[0], zero[0], one[0])
-        and in_range(curr[1], zero[1], one[1])
-        and in_range(curr[2], zero[2], one[2])
+        in_range(curr[0], zero[0], one[0]) and in_range(curr[1], zero[1], one[1]) and in_range(curr[2], zero[2], one[2])
     )
     if in_prism:
         diff = one - zero
@@ -234,6 +228,7 @@ def hamacher_product(a: float, b: float) -> float:
 
     Raises:
         ValueError: a and b must range between 0 and 1
+
     """
     if not ((0.0 <= a <= 1.0) and (0.0 <= b <= 1.0)):
         raise ValueError(f"a ({b}) and b ({b}) must range between 0 and 1")
